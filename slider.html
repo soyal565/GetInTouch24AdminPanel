@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Slider Control</title>
+
+    <link href="css/bootstrap.css" rel="stylesheet">
+</head>
+
+<body>
+
+    <div class="container-fluid mt-4">
+
+        <h3>Slider Management</h3>
+
+        <!-- Add Slider -->
+        <div class="card p-3 mb-4">
+
+            <div class="card p-3 mb-4 text-center">
+
+                <!-- Hidden file input -->
+                <input type="file" id="imageInput" accept="image/*" hidden>
+
+                <!-- Plus Button -->
+                <div onclick="openFilePicker()" style="
+        width:100px;
+        height:100px;
+        border:2px dashed #ccc;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        margin:auto;
+        cursor:pointer;
+        font-size:40px;
+        color:#888;
+    ">
+                    +
+                </div>
+
+                <p class="mt-2">Click to upload image</p>
+
+            </div>
+
+
+        </div>
+
+        <!-- Slider List -->
+        <div id="sliderList" class="row"></div>
+
+    </div>
+
+    <script src="js/config.js"></script>
+    <script src="js/loader.js"></script>
+    <script src="js/common.js"></script>
+    <script src="js/admin-auth.js"></script>
+    <script src="./js/slider.js"></script>
+
+</body>
+
+</html>

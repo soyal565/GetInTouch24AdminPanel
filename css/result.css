@@ -1,0 +1,41 @@
+.page-title {
+
+font-weight: bold;
+margin-bottom: 20px;
+
+}
+
+.section-card {
+
+margin-bottom: 25px;
+
+}
+
+.card-header {
+
+font-weight: bold;
+background: #0d6efd;
+color: white;
+
+}
+
+.result-box div {
+
+margin-bottom: 10px;
+font-weight: 500;
+
+}
+
+.pass {
+
+color: green;
+font-weight: bold;
+
+}
+
+.fail {
+
+color: red;
+font-weight: bold;
+
+}

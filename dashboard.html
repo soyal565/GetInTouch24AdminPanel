@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Admin Dashboard - GetInTouch24</title>
+
+    <!-- Bootstrap CSS -->
+    <link href="css/bootstrap.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="css/dashboard.css">
+
+
+</head>
+
+<body>
+
+    <div class="topbar d-flex justify-content-between align-items-center px-3">
+
+        <!-- Burger Button (mobile only) -->
+        <button class="menu-btn d-lg-none" id="menuBtn" onclick="toggleSidebar(); event.stopPropagation();">
+            ☰
+        </button>
+
+        <h5 class="m-0">Admin Dashboard</h5>
+
+    </div>
+
+    <div class="wrapper">
+
+        <!-- Sidebar -->
+        <div class="sidebar" id="sidebar">
+
+            <h3 class="logo">GetInTouch24</h3>
+
+            <ul class="menu">
+
+                <li><a href="#" onclick="event.preventDefault(); loadPage('dashboard-home.html')">Dashboard</a></li>
+                <li><a href="#" onclick="event.preventDefault(); loadPage('course.html')">Manage Courses</a></li>
+                <li><a href="#" onclick="event.preventDefault(); loadPage('paper.html')">Manage Papers</a></li>
+                <li><a href="#" onclick="event.preventDefault(); loadPage('chapters.html')">Manage Chapters</a></li>
+                <li><a href="#" onclick="event.preventDefault(); loadPage('question.html')">Manage Questions</a>
+                </li>
+                <li><a href="#" onclick="event.preventDefault(); loadPage('test.html')">Manage Tests</a></li>
+                <li><a href="#" onclick="event.preventDefault(); loadPage('result.html')">Manage Results</a></li>
+                <li><a href="#" onclick="event.preventDefault(); loadPage('notes.html')">Manage Notes</a></li>
+                <li><a href="#" onclick="event.preventDefault(); loadPage('user.html')">Users</a></li>
+                <li><a href="#" onclick="event.preventDefault();loadPage('message.html')">Contact Messages</a></li>
+                <li><a href="#" onclick="event.preventDefault(); loadPage('marquee.html')">Marquee</a></li>
+                <li><a href="#" onclick="event.preventDefault(); loadPage('slider.html')">Slider</a></li>
+                <li><a href="#" onclick="event.preventDefault(); logout()">Logout</a></li>
+
+            </ul>
+
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+
+
+            <!-- Dashboard Cards -->
+            <div class="iframe-container">
+
+                <iframe id="contentFrame"></iframe>
+            </div>
+
+        </div>
+        <div id="overlay" onclick="closeSidebar()"></div>
+
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="js/config.js"></script>
+    <script src="js/common.js"></script>
+    <script src="js/admin-loader.js"></script>
+    <script src="js/bootstrap.bundle.js"></script>
+    <!-- <script src="../js/config.js"></script> -->
+    <script src="js/role-config.js"></script>
+    <script src="js/admin-auth.js"></script>
+    <script src="js/logout.js"></script>
+    <script>
+
+        document.addEventListener(
+            "DOMContentLoaded",
+            () => {
+                applySidebarRestrictions();
+                let pageReady = false;
+
+                window.addEventListener("message", function (event) {
+
+                    if (event.data === "PAGE_READY") {
+                        pageReady = true;
+                        hideAdminLoader();
+                    }
+
+                });
+
+                const sidebar =
+                    document.getElementById(
+                        "sidebar"
+                    );
+
+                const overlay =
+                    document.getElementById(
+                        "overlay"
+                    );
+
+                const frame =
+                    document.getElementById(
+                        "contentFrame"
+                    );
+
+                frame.onload = () => {
+
+                    showAdminLoader();
+
+                    const doc = frame.contentDocument || frame.contentWindow.document;
+
+                    if (!doc) return;
+
+                    // observer detect karega jab DOM stable ho jaaye
+                    const observer = new MutationObserver(() => {
+                        clearTimeout(window._loaderTimeout);
+
+                        window._loaderTimeout = setTimeout(() => {
+                            hideAdminLoader();
+                            observer.disconnect();
+                        }, 500);
+                    });
+
+                    observer.observe(doc.body, {
+                        childList: true,
+                        subtree: true,
+                        attributes: true
+                    });
+
+                    // safety fallback (agar changes na aaye)
+                    setTimeout(() => {
+                        hideAdminLoader();
+                        observer.disconnect();
+                    }, 10000);
+
+                };
+
+                // ================= RESTORE PAGE =================
+
+                // ================= RESTORE PAGE =================
+
+                const savedPage =
+                    sessionStorage.getItem(
+                        "adminCurrentPage"
+                    ) ||
+                    "dashboard-home.html";
+
+                loadPage(savedPage);
+
+                // ================= OUTSIDE CLICK =================
+
+                document.addEventListener(
+                    "click",
+                    function (event) {
+
+                        const toggleBtn =
+                            document.getElementById(
+                                "menuBtn"
+                            );
+
+                        if (
+                            sidebar.classList.contains(
+                                "active"
+                            ) &&
+                            !sidebar.contains(
+                                event.target
+                            ) &&
+                            !toggleBtn.contains(
+                                event.target
+                            )
+                        ) {
+
+                            sidebar.classList.remove(
+                                "active"
+                            );
+
+                            overlay.style.display =
+                                "none";
+
+                        }
+
+                    }
+                );
+
+            });
+
+
+
+
+        // ================= SIDEBAR =================
+
+        function toggleSidebar() {
+
+            const sidebar =
+                document.getElementById(
+                    "sidebar"
+                );
+
+            const overlay =
+                document.getElementById(
+                    "overlay"
+                );
+
+            sidebar.classList.toggle(
+                "active"
+            );
+
+            overlay.style.display =
+                sidebar.classList.contains(
+                    "active"
+                )
+                    ? "block"
+                    : "none";
+
+        }
+
+
+        function closeSidebar() {
+
+            document
+                .getElementById(
+                    "sidebar"
+                )
+                .classList.remove(
+                    "active"
+                );
+
+            document
+                .getElementById(
+                    "overlay"
+                )
+                .style.display =
+                "none";
+
+        }
+
+
+        // ================= LOAD PAGE =================
+
+        function loadPage(page) {
+
+            const frame =
+                document.getElementById("contentFrame");
+
+            pageReady = false;
+
+            showAdminLoader();
+
+            sessionStorage.setItem("adminCurrentPage", page);
+
+            frame.src = page;
+
+            closeSidebar();
+
+            // safety fallback
+            setTimeout(() => {
+                if (!pageReady) {
+                    hideAdminLoader();
+                }
+            }, 10000);
+
+        }
+        // ================= SIDEBAR RESTRICTIONS =================
+        function applySidebarRestrictions() {
+
+            if (isSuperAdmin()) return; // full access wale ke liye kuch hide nahi karna
+
+            document.querySelectorAll(".menu li a").forEach(link => {
+
+                const onclickAttr = link.getAttribute("onclick") || "";
+
+                const isRestricted = RESTRICTED_PAGES.some(
+                    page => onclickAttr.includes(page)
+                );
+
+                if (isRestricted) {
+                    link.closest("li").style.display = "none";
+                }
+
+            });
+
+        }
+
+    </script>
+</body>
+
+</html>

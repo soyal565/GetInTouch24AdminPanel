@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Marquee Control</title>
+
+    <link href="css/bootstrap.css" rel="stylesheet">
+</head>
+
+<body>
+
+<div class="container-fluid mt-4">
+
+<h3>Marquee Control</h3>
+
+<div class="card p-3">
+
+<label>Marquee Items</label>
+
+<div id="marqueeFields">
+
+<!-- Default Row -->
+<div class="marquee-row mb-3">
+
+<input type="text"
+class="form-control mb-2 marquee-text"
+placeholder="Enter marquee text">
+
+<input type="text"
+class="form-control mb-2 marquee-url"
+placeholder="Enter URL (optional)">
+
+<button class="btn btn-danger btn-sm"
+onclick="removeField(this)">
+Delete
+</button>
+
+</div>
+
+</div>
+
+<button class="btn btn-secondary mb-3"
+onclick="addField()">
+
++ Add Field
+
+</button>
+
+<div class="form-check mb-3">
+
+<input type="checkbox"
+id="marqueeStatus"
+class="form-check-input">
+
+<label class="form-check-label">
+
+Active
+
+</label>
+
+</div>
+
+<button class="btn btn-primary"
+onclick="updateMarquee()">
+
+Update
+
+</button>
+
+</div>
+
+<h5>Last Marquee Text:</h5>
+
+<p id="marqueeHistory"
+style="color: gray;"></p>
+
+</div>
+
+<script src="js/config.js"></script>
+<script src="js/loader.js"></script>
+<script src="js/common.js"></script>
+<script src="js/admin-auth.js"></script>
+<script src="./js/marquee.js"></script>
+
+</body>
+
+</html>

@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+    <title>Manage Notes</title>
+
+    <link href="css/bootstrap.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/notes.css">
+
+</head>
+
+<body>
+
+    <div class="container mt-4">
+
+        <h3 class="mb-4">Manage Notes</h3>
+
+        <!-- ================= ADD NOTE ================= -->
+
+        <div class="card mb-4">
+
+            <div class="card-header">
+                Add Note
+            </div>
+
+            <div class="card-body">
+
+                <form id="noteForm">
+
+                    <!-- Course -->
+
+                    <div class="mb-3">
+
+                        <label class="form-label">
+                            Select Course
+                        </label>
+
+                        <select id="courseDropdown" class="form-control" onchange="filterPapers()">
+
+                            <option value="">
+                                Loading Courses...
+                            </option>
+
+                        </select>
+
+                    </div>
+
+                    <!-- Paper -->
+
+                    <div class="mb-3">
+
+                        <label class="form-label">
+                            Select Paper
+                        </label>
+
+                        <select id="paperDropdown" class="form-control">
+
+                            <option value="">
+                                Select Paper
+                            </option>
+
+                        </select>
+
+                    </div>
+
+                    <!-- Title -->
+
+                    <div class="mb-3">
+
+                        <label class="form-label">
+                            Title
+                        </label>
+
+                        <input type="text" id="title" class="form-control">
+
+                    </div>
+
+                    <!-- Price -->
+
+                    <div class="mb-3">
+
+                        <label class="form-label">
+                            Price
+                        </label>
+
+                        <input type="number" id="price" class="form-control" value="0">
+
+                    </div>
+
+                    <!-- Description -->
+
+                    <div class="mb-3">
+
+                        <label class="form-label">
+                            Description
+                        </label>
+
+                        <textarea id="description" rows="4" class="form-control"></textarea>
+
+                    </div>
+
+                    <!-- Thumbnail -->
+
+                    <div class="mb-3">
+
+                        <label class="form-label">
+                            Thumbnail
+                        </label>
+
+                        <input type="file" id="thumbnailFile" class="form-control" accept="image/*">
+
+                        <button type="button" class="btn btn-secondary mt-2" onclick="uploadThumbnail()">
+
+                            Upload Thumbnail
+
+                        </button>
+
+                        <input type="hidden" id="thumbnailUrl">
+
+                        <div id="thumbnailPreview" class="mt-2">
+                        </div>
+
+                    </div>
+
+                    <!-- PDF -->
+
+                    <div class="mb-3">
+
+                        <label class="form-label">
+                            PDF Note
+                        </label>
+
+                        <input type="file" id="pdfFile" class="form-control" accept=".pdf">
+
+                        <button type="button" class="btn btn-secondary mt-2" onclick="uploadPdf()">
+
+                            Upload PDF
+
+                        </button>
+
+                        <input type="hidden" id="pdfUrl">
+
+                        <div id="pdfPreview" class="mt-2">
+                        </div>
+
+                    </div>
+
+                    <!-- Active -->
+
+                    <div class="form-check mb-3">
+
+                        <input type="checkbox" id="active" class="form-check-input" checked>
+
+                        <label class="form-check-label">
+                            Active
+                        </label>
+
+                    </div>
+
+                    <!-- Buttons -->
+
+                    <div class="d-flex gap-2">
+
+                        <button type="button" class="btn btn-primary" onclick="createNote()">
+
+                            Create Note
+
+                        </button>
+
+                        <button type="button" class="btn btn-secondary" onclick="resetNoteForm()">
+
+                            Reset
+
+                        </button>
+
+                    </div>
+
+                </form>
+
+            </div>
+
+        </div>
+
+        <!-- ================= NOTES TABLE ================= -->
+
+        <div class="card">
+
+            <div class="card-header">
+                Notes List
+            </div>
+
+            <div class="card-body">
+
+                <!-- ===== ACTIVE / INACTIVE FILTER BUTTONS ===== -->
+
+                <div class="mb-3 d-flex gap-2">
+
+                    <button type="button" id="btnActiveFilter" class="btn btn-success"
+                        onclick="loadActiveNotes()">
+                        Active
+                    </button>
+
+                    <button type="button" id="btnDeactiveFilter" class="btn btn-outline-danger"
+                        onclick="loadDeactiveNotes()">
+                        Inactive
+                    </button>
+
+                </div>
+
+                <div class="table-responsive">
+
+                    <table class="table table-bordered">
+
+                        <thead>
+
+                            <tr>
+
+                                <th>Sr.No.</th>
+                                <th>Thumbnail</th>
+                                <th>Title</th>
+                                <th>Paper</th>
+                                <th>Price</th>
+                                <th>Status</th>
+                                <th>Created</th>
+                                <th>Actions</th>
+
+                            </tr>
+
+                        </thead>
+
+                        <tbody id="notesTableBody">
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- ================= VIEW MODAL ================= -->
+
+    <div class="modal fade" id="viewNoteModal" tabindex="-1">
+
+        <div class="modal-dialog modal-lg">
+
+            <div class="modal-content">
+
+                <div class="modal-header">
+
+                    <h5>Note Details</h5>
+
+                    <button class="btn-close" data-bs-dismiss="modal">
+                    </button>
+
+                </div>
+
+                <div class="modal-body" id="viewNoteBody">
+
+                </div>
+                <!-- viewNoteBody content (including thumbnail image) is rendered by notes.js -->
+
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- ================= EDIT MODAL ================= -->
+    <div class="modal fade" id="editNoteModal" tabindex="-1">
+
+        <div class="modal-dialog modal-lg">
+
+            <div class="modal-content">
+
+                <div class="modal-header">
+                    <h5>Edit Note</h5>
+
+                    <button class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body">
+
+                    <input type="hidden" id="editNoteId">
+
+                    <div class="mb-3">
+                        <label>Title</label>
+                        <input type="text" id="editTitle" class="form-control">
+                    </div>
+
+                    <div class="mb-3">
+                        <label>Price</label>
+                        <input type="number" id="editPrice" class="form-control">
+                    </div>
+
+                    <div class="mb-3">
+                        <label>Description</label>
+                        <textarea id="editDescription" rows="4" class="form-control"></textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label>Paper</label>
+                        <select id="editPaperDropdown" class="form-control"></select>
+                    </div>
+
+                    <!-- Thumbnail -->
+
+                    <div class="mb-3">
+
+                        <label class="form-label">
+                            Thumbnail
+                        </label>
+
+                        <input type="file" id="editThumbnailFile" class="form-control" accept="image/*">
+
+                        <button type="button" class="btn btn-secondary mt-2" onclick="uploadEditThumbnail()">
+
+                            Upload Thumbnail
+
+                        </button>
+
+                        <input type="hidden" id="editThumbnailUrl">
+
+                        <div id="editThumbnailPreview" class="mt-2">
+                        </div>
+
+                    </div>
+
+                    <!-- PDF -->
+
+                    <div class="mb-3">
+
+                        <label class="form-label">
+                            PDF Note
+                        </label>
+
+                        <input type="file" id="editPdfFile" class="form-control" accept=".pdf">
+
+                        <button type="button" class="btn btn-secondary mt-2" onclick="uploadEditPdf()">
+
+                            Upload PDF
+
+                        </button>
+
+                        <input type="hidden" id="editPdfUrl">
+
+                        <div id="editPdfPreview" class="mt-2">
+                        </div>
+
+                    </div>
+
+                    <div class="form-check">
+                        <input type="checkbox" id="editActive" class="form-check-input">
+
+                        <label class="form-check-label">
+                            Active
+                        </label>
+                    </div>
+
+                </div>
+
+                <div class="modal-footer">
+
+                    <button class="btn btn-success" onclick="updateNote()">
+                        Update
+                    </button>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+
+    <script src="js/config.js"></script>
+    <script src="js/loader.js"></script>
+    <script src="js/common.js"></script>
+    <script src="js/bootstrap.bundle.js"></script>
+    <script src="js/admin-auth.js"></script>
+    <script src="js/notes.js"></script>
+
+</body>
+
+</html>

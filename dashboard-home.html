@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard Home</title>
+    <link href="css/bootstrap.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/dashboard.css">
+</head>
+<body>
+
+<div class="container-fluid mt-4">
+
+    <div class="row">
+
+        <div class="col-md-3 mt-2">
+            <div class="card dashboard-card">
+                <h6>Total Students</h6>
+                <h3>120</h3>
+            </div>
+        </div>
+
+        <div class="col-md-3 mt-2">
+            <div class="card dashboard-card">
+                <h6>Total Tests</h6>
+                <h3>25</h3>
+            </div>
+        </div>
+
+        <div class="col-md-3 mt-2">
+            <div class="card dashboard-card">
+                <h6>Total Results</h6>
+                <h3>340</h3>
+            </div>
+        </div>
+
+        <div class="col-md-3 mt-2">
+            <div class="card dashboard-card">
+                <h6>Messages</h6>
+                <h3>8</h3>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+<script>
+window.onload = function () {
+    window.parent.postMessage("PAGE_READY", "*");
+};
+</script>
+
+</body>
+</html>

@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Manage Chapters</title>
+    <link href="css/bootstrap.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/chapters.css">
+    <style>
+        td, th { white-space: nowrap; }
+        td:nth-child(4) { word-break: break-all; white-space: normal; min-width: 160px; }
+        .thumbnail-preview-box {
+            border: 2px dashed #dee2e6;
+            border-radius: 8px;
+            padding: 12px;
+            text-align: center;
+            background: #f8f9fa;
+            min-height: 90px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .thumbnail-preview-box img {
+            max-height: 150px;
+            border-radius: 6px;
+            object-fit: cover;
+        }
+        .thumbnail-preview-box .placeholder-text {
+            color: #adb5bd;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container mt-4">
+
+    <h3 class="mb-4">Manage Chapters</h3>
+
+    <!-- Create Chapter -->
+    <div class="card mb-4">
+        <div class="card-header">Add New Chapter</div>
+        <div class="card-body">
+
+            <div class="mb-3">
+                <label class="form-label">Chapter Title</label>
+                <input type="text" id="chapterTitle" class="form-control" placeholder="Chapter Title">
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Chapter Number</label>
+                <input type="number" id="chapterNumber" class="form-control" placeholder="Chapter Number">
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Description</label>
+                <textarea id="chapterDescription" class="form-control" rows="3" placeholder="Description"></textarea>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Select Course</label>
+                <select id="courseDropdown" class="form-select" onchange="onCourseChange('courseDropdown', 'paperDropdown')">
+                    <option value="">Select Course</option>
+                </select>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Select Paper</label>
+                <select id="paperDropdown" class="form-select" disabled>
+                    <option value="">Select a course first</option>
+                </select>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Thumbnail</label>
+                <input type="file" id="chapterThumbnail" class="form-control" accept="image/*"
+                    onchange="previewThumbnail('chapterThumbnail', 'createThumbPreview')">
+                <div id="createThumbPreview" class="thumbnail-preview-box mt-2">
+                    <span class="placeholder-text">Thumbnail preview will appear here</span>
+                </div>
+            </div>
+
+            <button class="btn btn-primary" onclick="createChapter()">Create Chapter</button>
+
+        </div>
+    </div>
+
+    <!-- Chapter List -->
+    <div class="card">
+        <div class="card-header">Chapter List</div>
+        <div class="p-3">
+            <div class="input-group">
+                <input type="text" id="searchKeyword" class="form-control" placeholder="Search Chapter">
+                <button class="btn btn-secondary" onclick="searchChapter()">Search</button>
+                <button class="btn btn-outline-secondary" onclick="clearSearch()">Clear</button>
+            </div>
+        </div>
+        <div class="card-body">
+
+            <!-- ===== ACTIVE / INACTIVE FILTER BUTTONS ===== -->
+
+            <div class="mb-3 d-flex gap-2">
+
+                <button type="button" id="btnActiveFilter" class="btn btn-success"
+                    onclick="loadActiveChapters()">
+                    Active
+                </button>
+
+                <button type="button" id="btnInactiveFilter" class="btn btn-outline-danger"
+                    onclick="loadInactiveChapters()">
+                    Inactive
+                </button>
+
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Thumbnail</th>
+                            <th>Title</th>
+                            <th>Chapter No.</th>
+                            <th>Paper</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="chapterTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+
+<!-- Edit Chapter Modal -->
+<div class="modal fade" id="editChapterModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <h5 class="modal-title">Edit Chapter</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body">
+
+                <input type="hidden" id="editChapterId">
+
+                <div class="mb-3">
+                    <label class="form-label">Chapter Title</label>
+                    <input type="text" id="editChapterTitle" class="form-control" placeholder="Chapter Title">
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Chapter Number</label>
+                    <input type="number" id="editChapterNumber" class="form-control" placeholder="Chapter Number">
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Description</label>
+                    <textarea id="editChapterDescription" class="form-control" rows="3" placeholder="Description"></textarea>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Select Course</label>
+                    <select id="editCourseDropdown" class="form-select" onchange="onCourseChange('editCourseDropdown', 'editPaperDropdown')">
+                        <option value="">Select Course</option>
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Select Paper</label>
+                    <select id="editPaperDropdown" class="form-select"></select>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Thumbnail</label>
+
+                    <div id="editThumbPreview" class="thumbnail-preview-box mb-2">
+                        <span class="placeholder-text">No thumbnail</span>
+                    </div>
+
+                    <input type="hidden" id="editChapterThumbnail">
+
+                    <input type="file" id="editChapterThumbnailFile" class="form-control" accept="image/*"
+                        onchange="handleEditThumbnailChange()">
+                    <div class="form-text">Select a new image to change the thumbnail. If none is selected, the existing one is kept.</div>
+                </div>
+
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button class="btn btn-success" onclick="updateChapter()">Update Chapter</button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+
+<!-- View Chapter Modal -->
+<div class="modal fade" id="viewChapterModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <h5 class="modal-title">Chapter Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body">
+
+                <div class="text-center mb-3">
+                    <img id="viewThumbnail" src="" class="img-fluid rounded border"
+                        style="max-height:250px; display:none;">
+                    <div id="viewThumbnailPlaceholder" class="thumbnail-preview-box">
+                        <span class="placeholder-text">No thumbnail available</span>
+                    </div>
+                </div>
+
+                <table class="table table-bordered">
+                    <tr><th>ID</th><td id="viewId"></td></tr>
+                    <tr><th>Title</th><td id="viewTitle"></td></tr>
+                    <tr><th>Chapter Number</th><td id="viewChapterNumber"></td></tr>
+                    <tr><th>Paper Name</th><td id="viewPaperName"></td></tr>
+                    <tr><th>Description</th><td id="viewDescription"></td></tr>
+                    <tr><th>Status</th><td id="viewStatus"></td></tr>
+                    <tr><th>Created At</th><td id="viewCreatedAt"></td></tr>
+                    <tr><th>Updated At</th><td id="viewUpdatedAt"></td></tr>
+                </table>
+
+            </div>
+
+        </div>
+    </div>
+</div>
+
+
+<!-- Scripts -->
+<script src="js/config.js"></script>
+<script src="js/loader.js"></script>
+<script src="js/common.js"></script>
+<script src="js/bootstrap.bundle.js"></script>
+<script src="js/admin-auth.js"></script>
+<script src="js/chapters.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,50 @@
+td,
+th {
+white-space: nowrap;
+}
+
+.table td,
+.table th {
+vertical-align: middle;
+}
+
+#chapterTableBody img {
+border-radius: 6px;
+object-fit: cover;
+}
+
+td:last-child,
+th:last-child {
+min-width: 220px;
+}
+
+#thumbnailPreview img {
+max-width: 220px;
+border: 1px solid #ddd;
+padding: 4px;
+border-radius: 8px;
+}
+
+.modal-body table th {
+width: 180px;
+}
+
+.card-header {
+font-weight: 600;
+}
+
+textarea.form-control {
+min-height: 120px;
+}
+
+.table-responsive {
+overflow-x: auto;
+}
+
+#viewThumbnail {
+object-fit: contain;
+}
+
+.btn {
+margin-bottom: 3px;
+}

@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+    <title>Manage Quizzes</title>
+
+    <link href="css/bootstrap.css" rel="stylesheet">
+    <style>
+        td,
+        th {
+            white-space: nowrap;
+        }
+
+        td:nth-child(3) {
+            word-break: break-all;
+            white-space: normal;
+            min-width: 200px;
+        }
+
+        td:nth-child(4) {
+            white-space: normal;
+            min-width: 120px;
+        }
+
+        td:nth-child(9) {
+            min-width: 220px;
+        }
+    </style>
+
+</head>
+
+<body>
+
+    <div class="container mt-4">
+
+        <h3 class="mb-4">
+            Manage Quizzes
+        </h3>
+
+
+
+        <!-- ================= CREATE QUIZ ================= -->
+
+        <div class="card mb-4">
+
+            <div class="card-header">
+                Create Quiz
+            </div>
+
+            <div class="card-body">
+                <form id="quizForm">
+                    <!-- Title -->
+
+                    <div class="mb-3">
+
+                        <label class="form-label">Quiz Title</label>
+
+                        <input type="text" id="quizTitle" class="form-control" placeholder="Quiz Title">
+
+                    </div>
+
+
+
+                    <!-- Description -->
+
+                    <div class="mb-3">
+
+                        <label class="form-label">Description</label>
+
+                        <textarea id="quizDescription" class="form-control" rows="3"
+                            placeholder="Description"></textarea>
+
+                    </div>
+
+
+
+                    <!-- Course -->
+                    <div class="mb-3">
+                        <label class="form-label">Select Course</label>
+                        <select id="courseDropdown" class="form-select" onchange="loadPapers()">
+                            <option>Loading Courses...</option>
+                        </select>
+                    </div>
+
+                    <!-- Paper -->
+                    <div class="mb-3">
+                        <label class="form-label">Select Paper</label>
+                        <select id="paperDropdown" class="form-select" onchange="loadChapters()">
+                            <option value="">Select Paper</option>
+                        </select>
+                    </div>
+
+                    <!-- Chapter -->
+                    <div class="mb-3">
+                        <label class="form-label">Select Chapter</label>
+                        <select id="chapterDropdown" class="form-select" onchange="loadQuestionsByChapter()">
+                            <option value="">Select Chapter</option>
+                        </select>
+                    </div>
+
+
+
+                    <!-- Questions -->
+
+                    <!-- Questions -->
+
+                    <div class="mb-3">
+
+                        <label class="form-label">Select Questions</label>
+
+                        <div class="form-check mb-1">
+                            <input class="form-check-input" type="checkbox" id="selectAllQuestions"
+                                onchange="toggleSelectAllQuestions()">
+                            <label class="form-check-label" for="selectAllQuestions">
+                                Select All
+                            </label>
+                        </div>
+
+                        <div id="questionDropdown" class="border rounded p-2" style="height:150px; overflow-y:auto;">
+                        </div>
+
+                        <div class="form-text">
+                            Select multiple questions using checkboxes
+                        </div>
+
+                    </div>
+
+
+
+                    <!-- Quiz Type -->
+
+                    <div class="mb-3">
+
+                        <label class="form-label">Quiz Type</label>
+
+                        <select id="quizType" class="form-select" onchange="handleQuizTypeChange()">
+
+                            <option value="PRACTICE">
+                                PRACTICE
+                            </option>
+
+                            <option value="LIVE">
+                                LIVE
+                            </option>
+
+                        </select>
+
+                    </div>
+
+
+
+                    <div class="row">
+
+                        <!-- Time -->
+
+                        <div class="col-md-6 mb-3">
+
+                            <label class="form-label">Time Limit (minutes)</label>
+
+                            <input type="number" id="timeLimit" class="form-control" value="30">
+
+                        </div>
+
+
+
+                        <!-- Passing -->
+
+                        <div class="col-md-6 mb-3">
+
+                            <label class="form-label">Passing Marks</label>
+
+                            <input type="number" id="passingMarks" class="form-control" value="1">
+
+                        </div>
+
+                    </div>
+
+
+
+                    <!-- Start -->
+
+                    <div class="mb-3">
+
+                        <label class="form-label">Start Time</label>
+
+                        <input type="datetime-local" id="startTime" class="form-control">
+
+                    </div>
+
+
+
+                    <!-- End -->
+
+                    <div class="mb-3">
+
+                        <label class="form-label">End Time</label>
+
+                        <input type="datetime-local" id="endTime" class="form-control">
+
+                    </div>
+
+
+                    <div class="form-check mb-3">
+
+                        <input class="form-check-input" type="checkbox" id="showResult" checked>
+
+                        <label class="form-check-label" for="showResult">
+                            Show Result To User
+                        </label>
+
+                    </div>
+
+                    <!-- Active -->
+
+                    <div class="form-check mb-3">
+
+                        <input class="form-check-input" type="checkbox" id="quizActive" checked>
+
+                        <label class="form-check-label" for="quizActive">
+                            Active
+                        </label>
+
+                    </div>
+
+
+
+                    <div class="d-flex gap-2 mt-3">
+
+                        <button type="button" class="btn btn-primary" onclick="createQuiz()">
+
+                            Create Quiz
+
+                        </button>
+
+                        <button type="button" class="btn btn-secondary" onclick="resetQuizForm()">
+
+                            Reset
+
+                        </button>
+
+                    </div>
+                </form>
+            </div>
+
+        </div>
+
+
+
+        <!-- ================= QUIZ LIST ================= -->
+
+        <div class="card">
+
+            <div class="card-header">
+                Quiz List
+            </div>
+
+            <!-- NOTICE -->
+            <div class="px-3 pt-2">
+                <p class="text-danger mb-2 fw-bold">
+                    * Delete button permanently deletes the quiz. This action cannot be undone.
+                </p>
+            </div>
+
+            <div class="card-body">
+
+                <!-- ===== ACTIVE / INACTIVE FILTER BUTTONS ===== -->
+
+                <div class="mb-3 d-flex gap-2">
+
+                    <button type="button" id="btnActiveFilter" class="btn btn-success" onclick="loadActiveQuizzes()">
+                        Active
+                    </button>
+
+                    <button type="button" id="btnInactiveFilter" class="btn btn-outline-danger"
+                        onclick="loadInactiveQuizzes()">
+                        Inactive
+                    </button>
+
+                </div>
+
+                <div class="table-responsive">
+
+                    <table class="table table-bordered text-break">
+
+                        <thead>
+
+                            <tr>
+
+                                <th>Sr No</th>
+                                <th>Quiz ID</th>
+                                <th>Title</th>
+                                <th>Chapter</th>
+                                <th>Type</th>
+                                <th>Status</th>
+                                <th>Total Questions</th>
+                                <th>Total Marks</th>
+                                <th>Actions</th>
+
+                            </tr>
+
+                        </thead>
+
+                        <tbody id="quizTableBody">
+
+                        </tbody>
+
+                    </table>
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ================= EDIT MODAL ================= -->
+
+    <div class="modal fade" id="editQuizModal" tabindex="-1">
+
+        <div class="modal-dialog modal-lg">
+
+            <div class="modal-content">
+
+                <div class="modal-header">
+                    <h5 class="modal-title">Edit Quiz</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body">
+
+                    <input type="hidden" id="editQuizId">
+
+                    <div class="mb-3">
+                        <label class="form-label">Quiz Title</label>
+                        <input type="text" id="editQuizTitle" class="form-control" placeholder="Quiz Title">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Description</label>
+                        <textarea id="editQuizDescription" class="form-control" rows="3"
+                            placeholder="Description"></textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Select Course</label>
+                        <select id="editCourseDropdown" class="form-select" onchange="loadEditPapers()">
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Select Paper</label>
+                        <select id="editPaperDropdown" class="form-select" onchange="loadEditChapters()">
+                            <option value="">Select Paper</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Select Chapter</label>
+                        <select id="editChapterDropdown" class="form-select" onchange="loadEditQuestionsByChapter()">
+                            <option value="">Select Chapter</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Select Questions</label>
+                        <div class="form-check mb-1">
+                            <input class="form-check-input" type="checkbox" id="selectAllEditQuestions"
+                                onchange="toggleSelectAllEditQuestions()">
+                            <label class="form-check-label" for="selectAllEditQuestions">
+                                Select All
+                            </label>
+                        </div>
+                        <div id="editQuestionDropdown" class="border rounded p-2"
+                            style="height:150px; overflow-y:auto;">
+                        </div>
+                        <div class="form-text">
+                            Select multiple questions using checkboxes
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Quiz Type</label>
+                        <select id="editQuizType" class="form-select" onchange="handleEditQuizTypeChange()">
+                            <option value="PRACTICE">PRACTICE</option>
+                            <option value="LIVE">LIVE</option>
+                        </select>
+                    </div>
+
+                    <div class="row">
+
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Time Limit (minutes)</label>
+                            <input type="number" id="editTimeLimit" class="form-control">
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Passing Marks</label>
+                            <input type="number" id="editPassingMarks" class="form-control">
+                        </div>
+
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Start Time</label>
+                        <input type="datetime-local" id="editStartTime" class="form-control">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">End Time</label>
+                        <input type="datetime-local" id="editEndTime" class="form-control">
+                    </div>
+
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" id="editActive">
+                        <label class="form-check-label" for="editActive">Active</label>
+                    </div>
+
+                    <div class="form-check mb-2">
+
+                        <input class="form-check-input" type="checkbox" id="editShowResult">
+
+                        <label class="form-check-label" for="editShowResult">
+                            Show Result To User
+                        </label>
+
+                    </div>
+
+                </div>
+
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button class="btn btn-success" onclick="updateQuiz()">
+                        Update Quiz
+                    </button>
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="modal fade" id="viewQuizModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+
+                <div class="modal-header">
+                    <h5 class="modal-title">Quiz Details</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body" id="viewQuizBody">
+                    <!-- Data yahan aayega -->
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+
+    <script src="js/config.js"></script>
+    <script src="js/loader.js"></script>
+    <script src="js/common.js"></script>
+    <script src="js/bootstrap.bundle.js"></script>
+    <script src="js/admin-auth.js"></script>
+    <script src="js/test.js"></script>
+
+</body>
+
+</html>

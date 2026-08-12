@@ -1,0 +1,35 @@
+body {
+    background: #f4f6fb;
+    font-family: Arial, sans-serif;
+}
+
+.card {
+    border-radius: 14px;
+}
+
+.table td {
+    vertical-align: middle;
+}
+
+.message-box {
+    max-width: 300px;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+.status-badge {
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.status-pending {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.status-resolved {
+    background: #d1e7dd;
+    color: #0f5132;
+}

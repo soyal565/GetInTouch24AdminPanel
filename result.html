@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Manage Results</title>
+
+<link href="css/bootstrap.css" rel="stylesheet">
+<link href="css/result.css" rel="stylesheet">
+
+</head>
+
+<body>
+
+<div class="container-fluid mt-4">
+
+<h3 class="page-title">Manage Quiz Results</h3>
+
+<!-- ========================= -->
+<!-- QUIZ LIST -->
+<!-- ========================= -->
+
+<div class="card section-card">
+
+<div class="card-header">
+Available Quizzes
+</div>
+
+<div class="card-body">
+
+<table class="table table-bordered">
+
+<thead class="table-dark">
+
+<tr>
+<th>Quiz ID</th>
+<th>Quiz Title</th>
+<th>Action</th>
+</tr>
+
+</thead>
+
+<tbody id="quizTableBody">
+</tbody>
+
+</table>
+
+</div>
+
+</div>
+
+
+<!-- ========================= -->
+<!-- ATTEMPT LIST -->
+<!-- ========================= -->
+
+<div class="card section-card">
+
+<div class="card-header">
+Quiz Attempts
+</div>
+
+<div class="card-body">
+
+<table class="table table-bordered">
+
+<thead class="table-dark">
+
+<tr>
+<th>Full Name</th>
+<th>Attempt ID</th>
+<th>Score</th>
+<th>Status</th>
+</tr>
+
+</thead>
+
+<tbody id="attemptTableBody">
+</tbody>
+
+</table>
+
+</div>
+
+</div>
+
+
+
+<!-- ========================= -->
+<!-- ATTEMPT SEARCH -->
+<!-- ========================= -->
+
+<div class="card section-card">
+
+<div class="card-header">
+Fetch Attempt Result
+</div>
+
+<div class="card-body">
+
+<div class="row">
+
+<div class="col-md-6">
+
+<input
+type="number"
+id="attemptIdInput"
+class="form-control"
+placeholder="Enter Attempt ID"
+/>
+
+</div>
+
+<div class="col-md-3">
+
+<button
+class="btn btn-primary"
+onclick="fetchAttemptDetail()">
+
+Fetch Result
+
+</button>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+
+
+<!-- ========================= -->
+<!-- RESULT DETAILS -->
+<!-- ========================= -->
+
+<div
+class="card section-card"
+id="resultDetailCard"
+style="display:none;"
+>
+
+<div class="card-header">
+Result Details
+</div>
+
+<div class="card-body">
+
+<div class="row result-box">
+
+<div class="col-md-3">
+Total Questions:
+<span id="totalQuestions"></span>
+</div>
+
+<div class="col-md-3">
+Attempted:
+<span id="attemptedQuestions"></span>
+</div>
+
+<div class="col-md-3">
+Correct:
+<span id="correctAnswers"></span>
+</div>
+
+<div class="col-md-3">
+Wrong:
+<span id="wrongAnswers"></span>
+</div>
+
+<div class="col-md-3">
+Score:
+<span id="score"></span>
+</div>
+
+<div class="col-md-3">
+Percentage:
+<span id="percentage"></span>
+</div>
+
+<div class="col-md-3">
+Status:
+<span id="status"></span>
+</div>
+
+<div class="col-md-6">
+Time:
+<span id="timeRange"></span>
+</div>
+
+</div>
+
+
+<!-- Question Wise -->
+
+<h5 class="mt-4">Question Wise Result</h5>
+
+<table class="table table-bordered">
+
+<thead class="table-dark">
+
+<tr>
+<th>Question ID</th>
+<th>Selected</th>
+<th>Correct</th>
+<th>Marks</th>
+<th>Status</th>
+</tr>
+
+</thead>
+
+<tbody id="questionResultBody">
+</tbody>
+
+</table>
+
+</div>
+
+</div>
+
+
+</div>
+<script src="js/config.js"></script>
+<script src="js/loader.js"></script>
+<script src="js/common.js"></script>
+<script src="js/admin-auth.js"></script>
+<script src="js/bootstrap.bundle.js"></script>
+<script src="js/result.js"></script>
+
+</body>
+
+</html>

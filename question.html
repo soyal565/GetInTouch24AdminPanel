@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+    <title>Manage Questions</title>
+
+    <link href="css/bootstrap.css" rel="stylesheet">
+    <style>
+        td,
+        th {
+            white-space: nowrap;
+        }
+
+        td:nth-child(3) {
+            white-space: normal;
+            word-break: normal;
+            overflow-wrap: break-word;
+            min-width: 250px;
+            max-width: 400px;
+        }
+
+        td:nth-child(4) {
+            white-space: normal;
+            min-width: 120px;
+        }
+
+        td:nth-child(7) {
+            min-width: 220px;
+        }
+
+        .thumbnail-preview-box {
+            border: 2px dashed #dee2e6;
+            border-radius: 8px;
+            padding: 12px;
+            text-align: center;
+            background: #f8f9fa;
+            min-height: 90px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .thumbnail-preview-box img {
+            max-height: 150px;
+            border-radius: 6px;
+            object-fit: cover;
+        }
+
+        .thumbnail-preview-box .placeholder-text {
+            color: #adb5bd;
+            font-size: 0.9rem;
+        }
+
+        .option-preview-box {
+            border: 2px dashed #dee2e6;
+            border-radius: 6px;
+            padding: 8px;
+            text-align: center;
+            background: #f8f9fa;
+            min-height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 8px;
+        }
+
+        .option-preview-box img {
+            max-height: 100px;
+            border-radius: 4px;
+            object-fit: cover;
+        }
+    </style>
+
+</head>
+
+<body>
+
+    <div class="container mt-4">
+
+        <h3 class="mb-4">Manage Questions</h3>
+
+        <!-- ================= COURSE ================= -->
+
+        <div class="card mb-3">
+
+            <div class="card-body">
+
+
+
+                <div class="row">
+
+                    <div class="col-md-4">
+
+                        <label>Select Course</label>
+
+                        <select id="courseDropdown" class="form-control">
+
+                            <option value="">
+                                Select Course
+                            </option>
+
+                        </select>
+
+                    </div>
+
+                    <div class="col-md-4">
+
+                        <label>Select Paper</label>
+
+                        <select id="paperDropdown" class="form-control">
+
+                            <option value="">
+                                Select Paper
+                            </option>
+
+                        </select>
+
+                    </div>
+
+                    <div class="col-md-4">
+
+                        <label>Select Chapter</label>
+
+                        <select id="chapterDropdown" class="form-control">
+
+                            <option value="">
+                                Select Chapter
+                            </option>
+
+                        </select>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+
+        <!-- ================= ADD QUESTION ================= -->
+
+        <div class="card mb-4">
+
+            <div class="card-header">
+                Add Question
+            </div>
+
+            <div class="card-body">
+                <form id="questionForm">
+
+                    <!-- Question -->
+
+                    <div class="mb-3">
+
+                        <label>Question Mode</label>
+
+                        <select id="questionMode" class="form-control">
+
+                            <option value="text">
+                                Text Question
+                            </option>
+
+                            <option value="image">
+                                Image Question
+                            </option>
+
+                        </select>
+
+                    </div>
+
+                    <div id="questionTextWrapper" class="mb-3">
+
+                        <label>Question</label>
+
+                        <textarea id="questionText" class="form-control" rows="2"></textarea>
+
+                    </div>
+
+                    <div id="questionImageWrapper" class="mb-3" style="display:none;">
+
+                        <div class="alert alert-info">
+
+                            To giving question title is mandatory for Image question because the checking of duplicacy is based on that title.
+
+                        </div>
+
+                        <label>Question Title *</label>
+
+                        <input type="text" id="imageQuestionTitle" class="form-control mb-2"
+                            placeholder="Enter Question Title">
+
+                        <label>Question Image</label>
+
+                        <input type="file" id="questionImage" class="form-control" accept="image/*"
+                            onchange="previewImage('questionImage', 'questionPreviewBox')">
+
+                        <div id="questionPreviewBox" class="thumbnail-preview-box mt-2">
+                            <span class="placeholder-text">The Image preview display here</span>
+                        </div>
+
+                    </div>
+
+
+
+                    <!-- OPTIONS -->
+
+                    <div class="mb-3">
+
+                        <label>Options</label>
+
+                        <div id="optionsContainer"></div>
+
+                        <button type="button" class="btn btn-secondary btn-sm mt-2" onclick="addOptionField()">
+
+                            + Add More Option
+
+                        </button>
+
+                    </div>
+
+
+
+                    <!-- Correct -->
+
+                    <div class="mb-3">
+
+                        <label>Correct Answer</label>
+
+                        <div id="correctAnswer"></div>
+
+                    </div>
+
+
+
+                    <!-- Explanation -->
+
+                    <div class="mb-3">
+
+                        <label>Explanation</label>
+
+                        <textarea id="explanation" class="form-control" rows="2"></textarea>
+
+                    </div>
+
+                    <!-- Question Type -->
+
+                    <div class="mb-3">
+
+                        <label>Question Type</label>
+
+                        <select id="questionType" class="form-control" onchange="handleTypeChange()">
+
+                            <option value="SINGLE">
+                                SINGLE
+                            </option>
+
+                            <option value="MULTIPLE">
+                                MULTIPLE
+                            </option>
+
+                        </select>
+
+                    </div>
+
+
+
+                    <!-- Difficulty + Marks -->
+
+                    <div class="row">
+
+                        <div class="col-md-6">
+
+                            <label>Difficulty</label>
+
+                            <select id="difficulty" class="form-control">
+
+                                <option value="EASY">
+                                    EASY
+                                </option>
+
+                                <option value="MEDIUM">
+                                    MEDIUM
+                                </option>
+
+                                <option value="HARD">
+                                    HARD
+                                </option>
+
+                            </select>
+
+                        </div>
+
+                        <div class="col-md-6">
+
+                            <label>Marks</label>
+
+                            <input type="number" id="marks" class="form-control" value="1">
+
+                        </div>
+
+                    </div>
+
+
+
+                    <div class="d-flex gap-2 py-3">
+
+                        <button type="button" class="btn btn-primary" onclick="createQuestion()">
+
+                            Add Question
+
+                        </button>
+
+                        <button type="button" class="btn btn-secondary" onclick="resetQuestionForm()">
+
+                            Reset
+
+                        </button>
+
+                    </div>
+
+                </form>
+            </div>
+
+        </div>
+
+
+
+        <!-- ================= TABLE ================= -->
+
+        <div class="card">
+
+            <div class="card-header">
+                Question List
+            </div>
+
+            <div class="card-body">
+
+                <!-- ===== SEARCH BAR ===== -->
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <input type="text" id="searchQuestionInput" class="form-control"
+                            placeholder="Search question...">
+                    </div>
+                </div>
+
+                <!-- ===== ACTIVE / INACTIVE FILTER BUTTONS ===== -->
+
+                <div class="mb-3 d-flex gap-2">
+
+                    <button type="button" id="btnActiveFilter" class="btn btn-success" onclick="loadActiveQuestions()">
+                        Active
+                    </button>
+
+                    <button type="button" id="btnInactiveFilter" class="btn btn-outline-danger"
+                        onclick="loadInactiveQuestions()">
+                        Inactive
+                    </button>
+
+                </div>
+
+                <div class="table-responsive">
+
+                    <table class="table table-bordered text-break">
+
+                        <thead>
+
+                            <tr>
+
+                                <th>Sr.No.</th>
+                                <th>Question ID</th>
+                                <th>Question</th>
+                                <th>Chapter</th>
+                                <th>Difficulty</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+
+                            </tr>
+
+                        </thead>
+
+                        <tbody id="questionTableBody">
+                        </tbody>
+
+                    </table>
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+
+    <!-- ================= EDIT MODAL ================= -->
+
+    <div class="modal fade" id="editQuestionModal" tabindex="-1">
+
+        <div class="modal-dialog modal-lg">
+
+            <div class="modal-content">
+
+                <div class="modal-header">
+
+                    <h5>Edit Question</h5>
+
+                    <button type="button" class="btn-close" data-bs-dismiss="modal">
+                    </button>
+
+                </div>
+
+                <div class="modal-body">
+
+                    <input type="hidden" id="editQuestionId">
+
+                    <div class="mb-3">
+                        <label>Question Mode</label>
+                        <select id="editQuestionMode" class="form-control">
+
+                            <option value="text">
+                                Text Question
+                            </option>
+
+                            <option value="image">
+                                Image Question
+                            </option>
+
+                        </select>
+                    </div>
+
+                    <div id="editTextQuestionWrapper" class="mb-3">
+                        <label>Question</label>
+                        <textarea id="editQuestionText" class="form-control" rows="2"></textarea>
+                    </div>
+
+                    <div id="editImageQuestionWrapper" class="mb-3" style="display:none;">
+
+                        <div class="alert alert-info">
+
+                        You can edit both image and title of Image question
+
+                        </div>
+
+                        <label>Question Title</label>
+                        <input type="text" id="editImageQuestionTitle" class="form-control mb-2"
+                            placeholder="Question Title">
+
+                        <label>Question Image</label>
+
+                        <div id="editQuestionPreviewBox" class="thumbnail-preview-box mb-2">
+                            <span class="placeholder-text">No image</span>
+                        </div>
+
+                        <input type="file" id="editQuestionImage" class="form-control" accept="image/*"
+                            onchange="previewImage('editQuestionImage', 'editQuestionPreviewBox')">
+                        <div class="form-text"> Select the new image to change the old image ,otherwise old image will be display
+                        </div>
+
+                    </div>
+
+                    <div class="mb-3">
+                        <label>Options</label>
+                        <div id="editOptionsContainer">
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label>Correct Answer</label>
+                        <div id="editCorrectAnswer">
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label>Explanation</label>
+                        <textarea id="editExplanation" class="form-control" rows="2"></textarea>
+                    </div>
+
+                    <!-- Edit Question Type -->
+                    <div class="mb-3">
+                        <label>Question Type</label>
+                        <select id="editQuestionType" class="form-control" onchange="handleEditTypeChange()">
+
+                            <option value="SINGLE">
+                                SINGLE
+                            </option>
+
+                            <option value="MULTIPLE">
+                                MULTIPLE
+                            </option>
+
+                        </select>
+                    </div>
+
+                    <div class="row">
+
+                        <div class="col-md-6">
+                            <label>Difficulty</label>
+                            <select id="editDifficulty" class="form-control">
+
+                                <option value="EASY">
+                                    EASY
+                                </option>
+
+                                <option value="MEDIUM">
+                                    MEDIUM
+                                </option>
+
+                                <option value="HARD">
+                                    HARD
+                                </option>
+
+                            </select>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label>Marks</label>
+                            <input type="number" id="editMarks" class="form-control">
+                        </div>
+
+                    </div>
+                    <div class="mb-3 mt-3 form-check">
+                        <input type="checkbox" class="form-check-input" id="editActiveStatus">
+                        <label class="form-check-label" for="editActiveStatus">Active</label>
+                    </div>
+
+                </div>
+
+                <div class="modal-footer">
+
+                    <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+
+                    <button class="btn btn-success" onclick="updateQuestion()">
+
+                        Update
+
+                    </button>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="modal fade" id="viewQuestionModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+
+                <div class="modal-header">
+                    <h5>Question Details</h5>
+                    <button class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body" id="viewQuestionBody">
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+
+    <script src="js/config.js"></script>
+    <script src="js/loader.js"></script>
+    <script src="js/common.js"></script>
+    <script src="js/bootstrap.bundle.js"></script>
+    <script src="js/admin-auth.js"></script>
+    <script src="js/question.js"></script>
+
+
+
+</body>
+
+</html>

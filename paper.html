@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Manage Papers</title>
+    <link href="css/bootstrap.css" rel="stylesheet">
+    <link href="css/paper.css" rel="stylesheet">
+    <style>
+        td,
+        th {
+            white-space: nowrap;
+        }
+
+        td:nth-child(4) {
+            word-break: break-all;
+            white-space: normal;
+            min-width: 160px;
+        }
+
+        td:nth-child(8) {
+            min-width: 220px;
+        }
+
+        .thumbnail-preview-box {
+            border: 2px dashed #dee2e6;
+            border-radius: 8px;
+            padding: 12px;
+            text-align: center;
+            background: #f8f9fa;
+            min-height: 90px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .thumbnail-preview-box img {
+            max-height: 150px;
+            border-radius: 6px;
+            object-fit: cover;
+        }
+
+        .thumbnail-preview-box .placeholder-text {
+            color: #adb5bd;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container mt-4">
+
+        <h3 class="mb-4">Manage Papers</h3>
+
+        <!-- Create Paper -->
+        <div class="card mb-4">
+            <div class="card-header">Add New Paper</div>
+            <div class="card-body">
+
+                <div class="mb-3">
+                    <label class="form-label">Paper Name</label>
+                    <input type="text" id="paperName" class="form-control" placeholder="Paper Name">
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Paper Number</label>
+                    <input type="number" id="paperNumber" class="form-control" placeholder="Paper Number">
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Description</label>
+                    <textarea id="paperDescription" class="form-control" rows="3" placeholder="Description"></textarea>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Course</label>
+                    <select id="paperCourse" class="form-select">
+                        <option value="">Select Course</option>
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Thumbnail</label>
+                    <input type="file" id="paperThumbnail" class="form-control" accept="image/*"
+                        onchange="previewThumbnail('paperThumbnail', 'createThumbPreview')">
+                    <div id="createThumbPreview" class="thumbnail-preview-box mt-2">
+                        <span class="placeholder-text">Thumbnail preview will appear here</span>
+                    </div>
+                </div>
+
+                <button class="btn btn-primary" onclick="createPaper()">Create Paper</button>
+
+            </div>
+        </div>
+
+        <!-- Paper Table -->
+        <div class="card">
+
+            <div class="card-header">Paper List</div>
+
+            <!-- ===== ACTIVE / INACTIVE FILTER BUTTONS ===== -->
+            <div class="p-3 pb-0 d-flex gap-2">
+                <button type="button" id="btnActiveFilter" class="btn btn-success" onclick="loadActivePapers()">
+                    Active
+                </button>
+                <button type="button" id="btnInactiveFilter" class="btn btn-outline-danger"
+                    onclick="loadInactivePapers()">
+                    Inactive
+                </button>
+            </div>
+
+            <div class="p-3">
+                <div class="input-group">
+                    <input type="text" id="searchKeyword" class="form-control" placeholder="Search Paper">
+                    <button class="btn btn-secondary" onclick="searchPaper()">Search</button>
+                    <button class="btn btn-outline-secondary" onclick="clearSearch()">Clear</button>
+                </div>
+            </div>
+
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-bordered text-break">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Name</th>
+                                <th>Number</th>
+                                <th>Description</th>
+                                <th>Course</th>
+                                <th>Thumbnail</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="paperTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- Edit Modal -->
+    <div class="modal fade" id="editPaperModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+
+                <div class="modal-header">
+                    <h5 class="modal-title">Edit Paper</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body">
+
+                    <input type="hidden" id="editPaperId">
+
+                    <div class="mb-3">
+                        <label class="form-label">Paper Name</label>
+                        <input type="text" id="editPaperName" class="form-control" placeholder="Paper Name">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Paper Number</label>
+                        <input type="number" id="editPaperNumber" class="form-control"
+                            placeholder="Paper Number">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Description</label>
+                        <textarea id="editPaperDescription" class="form-control" rows="3"
+                            placeholder="Description"></textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Course</label>
+                        <select id="editPaperCourse" class="form-select"></select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Thumbnail</label>
+
+                        <div id="editThumbPreview" class="thumbnail-preview-box mb-2">
+                            <span class="placeholder-text">No thumbnail</span>
+                        </div>
+
+                        <input type="hidden" id="editPaperThumbnail">
+
+                        <input type="file" id="editPaperThumbnailFile" class="form-control" accept="image/*"
+                            onchange="handleEditThumbnailChange()">
+                        <div class="form-text"> Select the new image in order to change the old image otherwise old image will be appear</div>
+                    </div>
+
+                </div>
+
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button class="btn btn-success" onclick="updatePaper()">Update Paper</button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+
+    <!-- View Paper Modal -->
+    <div class="modal fade" id="viewPaperModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+
+                <div class="modal-header">
+                    <h5 class="modal-title">Paper Details</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body">
+
+                    <div class="text-center mb-3">
+                        <img id="viewThumbnail" src="" class="img-fluid rounded border"
+                            style="max-height:250px; display:none;">
+                        <div id="viewThumbnailPlaceholder" class="thumbnail-preview-box">
+                            <span class="placeholder-text">No thumbnail available</span>
+                        </div>
+                    </div>
+
+                    <table class="table table-bordered">
+                        <tr>
+                            <th>ID</th>
+                            <td id="viewId"></td>
+                        </tr>
+                        <tr>
+                            <th>Name</th>
+                            <td id="viewName"></td>
+                        </tr>
+                        <tr>
+                            <th>Paper Number</th>
+                            <td id="viewNumber"></td>
+                        </tr>
+                        <tr>
+                            <th>Course</th>
+                            <td id="viewCourse"></td>
+                        </tr>
+                        <tr>
+                            <th>Description</th>
+                            <td id="viewDescription"></td>
+                        </tr>
+                        <tr>
+                            <th>Status</th>
+                            <td id="viewStatus"></td>
+                        </tr>
+                    </table>
+
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Scripts -->
+    <script src="js/config.js"></script>
+    <script src="js/loader.js"></script>
+    <script src="js/common.js"></script>
+    <script src="js/bootstrap.bundle.js"></script>
+    <script src="js/admin-auth.js"></script>
+    <script src="js/paper.js?v=2"></script>
+
+</body>
+
+</html>

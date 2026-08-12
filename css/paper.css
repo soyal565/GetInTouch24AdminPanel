@@ -1,0 +1,88 @@
+td,
+th {
+    white-space: nowrap;
+}
+
+/* Description Column */
+th:nth-child(4),
+td:nth-child(4) {
+    min-width: 450px;
+}
+
+/* Course Column */
+th:nth-child(5),
+td:nth-child(5) {
+    min-width: 250px;
+}
+
+/* Actions Column */
+
+td:nth-child(8),
+th:nth-child(8) {
+min-width: 220px;
+}
+
+/* Description Column */
+
+td:nth-child(4) {
+max-width: 300px;
+word-break: break-word;
+}
+
+/* Thumbnail Preview */
+
+#thumbnailPreview img {
+max-width: 200px;
+max-height: 150px;
+border: 1px solid #ddd;
+border-radius: 6px;
+padding: 4px;
+}
+
+/* Table Thumbnail */
+
+.paper-thumbnail {
+width: 80px;
+height: 60px;
+object-fit: cover;
+border-radius: 4px;
+border: 1px solid #ddd;
+}
+
+/* View Modal Thumbnail */
+
+#viewThumbnail {
+max-width: 100%;
+max-height: 250px;
+object-fit: contain;
+}
+
+/* Action Buttons */
+
+.action-btn {
+margin-right: 4px;
+margin-bottom: 4px;
+}
+
+/* Search Section */
+
+#searchKeyword {
+margin-bottom: 8px;
+}
+
+/* Responsive */
+
+@media (max-width: 768px) {
+
+td,
+th {
+    font-size: 13px;
+}
+
+.action-btn {
+    width: 100%;
+    margin-right: 0;
+}
+
+
+}

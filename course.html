@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Manage Courses</title>
+    <link href="css/bootstrap.css" rel="stylesheet">
+    <style>
+        td,
+        th {
+            white-space: nowrap;
+        }
+
+        td:nth-child(4) {
+            word-break: break-all;
+            white-space: normal;
+            min-width: 160px;
+        }
+
+        td:nth-child(7) {
+            min-width: 220px;
+        }
+
+        .thumbnail-preview-box {
+            border: 2px dashed #dee2e6;
+            border-radius: 8px;
+            padding: 12px;
+            text-align: center;
+            background: #f8f9fa;
+            min-height: 90px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .thumbnail-preview-box img {
+            max-height: 150px;
+            border-radius: 6px;
+            object-fit: cover;
+        }
+
+        .thumbnail-preview-box .placeholder-text {
+            color: #adb5bd;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container mt-4">
+
+        <h3 class="mb-4">Manage Courses</h3>
+
+        <!-- Create Course -->
+        <div class="card mb-4">
+            <div class="card-header">Add New Course</div>
+            <div class="card-body">
+
+                <div class="mb-3">
+                    <label class="form-label">Course Name</label>
+                    <input type="text" id="courseName" class="form-control" placeholder="Course Name">
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Course Number</label>
+                    <input type="number" id="courseNumber" class="form-control" placeholder="Course Number">
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Description</label>
+                    <textarea id="courseDescription" class="form-control" rows="3" placeholder="Description"></textarea>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Thumbnail</label>
+                    <input type="file" id="courseThumbnail" class="form-control" accept="image/*"
+                        onchange="previewThumbnail('courseThumbnail', 'createThumbPreview')">
+                    <div id="createThumbPreview" class="thumbnail-preview-box mt-2">
+                        <span class="placeholder-text">Thumbnail preview will appear here</span>
+                    </div>
+                </div>
+
+                <button class="btn btn-primary" onclick="createCourse()">Create Course</button>
+
+            </div>
+        </div>
+
+        <!-- Course Table -->
+        <div class="card">
+
+            <div class="card-header">Course List</div>
+
+            <!-- ===== ACTIVE / INACTIVE FILTER BUTTONS ===== -->
+            <div class="p-3 pb-0 d-flex gap-2">
+                <button type="button" id="btnActiveFilter" class="btn btn-success" onclick="loadActiveCourses()">
+                    Active
+                </button>
+                <button type="button" id="btnInactiveFilter" class="btn btn-outline-danger"
+                    onclick="loadInactiveCourses()">
+                    Inactive
+                </button>
+            </div>
+
+            <div class="p-3">
+                <div class="input-group">
+                    <input type="text" id="searchKeyword" class="form-control" placeholder="Search Course">
+                    <button class="btn btn-secondary" onclick="searchCourse()">Search</button>
+                    <button class="btn btn-outline-secondary" onclick="clearSearch()">Clear</button>
+                </div>
+            </div>
+
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-bordered text-break">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Name</th>
+                                <th>Number</th>
+                                <th>Description</th>
+                                <th>Thumbnail</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="courseTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- Edit Modal -->
+    <div class="modal fade" id="editCourseModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+
+                <div class="modal-header">
+                    <h5 class="modal-title">Edit Course</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body">
+
+                    <input type="hidden" id="editCourseId">
+
+                    <div class="mb-3">
+                        <label class="form-label">Course Name</label>
+                        <input type="text" id="editCourseName" class="form-control" placeholder="Course Name">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Course Number</label>
+                        <input type="number" id="editCourseNumber" class="form-control"
+                            placeholder="Course Number">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Description</label>
+                        <textarea id="editCourseDescription" class="form-control" rows="3"
+                            placeholder="Description"></textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Thumbnail</label>
+
+                        <!-- Current thumbnail preview -->
+                        <div id="editThumbPreview" class="thumbnail-preview-box mb-2">
+                            <span class="placeholder-text">No thumbnail</span>
+                        </div>
+
+                        <!-- Hidden field to store current/new URL -->
+                        <input type="hidden" id="editCourseThumbnail">
+
+                        <!-- Upload new thumbnail -->
+                        <input type="file" id="editCourseThumbnailFile" class="form-control" accept="image/*"
+                            onchange="handleEditThumbnailChange()">
+                        <div class="form-text">Select the new image in order to change the old image otherwise old image will be appear</div>
+                    </div>
+
+                </div>
+
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button class="btn btn-success" onclick="updateCourse()">Update Course</button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+
+    <!-- View Course Modal -->
+    <div class="modal fade" id="viewCourseModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+
+                <div class="modal-header">
+                    <h5 class="modal-title">Course Details</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body">
+
+                    <div class="text-center mb-3">
+                        <img id="viewThumbnail" src="" class="img-fluid rounded border"
+                            style="max-height:250px; display:none;">
+                        <div id="viewThumbnailPlaceholder" class="thumbnail-preview-box">
+                            <span class="placeholder-text">No thumbnail available</span>
+                        </div>
+                    </div>
+
+                    <table class="table table-bordered">
+                        <tr>
+                            <th>ID</th>
+                            <td id="viewId"></td>
+                        </tr>
+                        <tr>
+                            <th>Name</th>
+                            <td id="viewName"></td>
+                        </tr>
+                        <tr>
+                            <th>Course Number</th>
+                            <td id="viewNumber"></td>
+                        </tr>
+                        <tr>
+                            <th>Description</th>
+                            <td id="viewDescription"></td>
+                        </tr>
+                        <tr>
+                            <th>Status</th>
+                            <td id="viewStatus"></td>
+                        </tr>
+                    </table>
+
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Scripts -->
+    <script src="js/config.js"></script>
+    <script src="js/loader.js"></script>
+    <script src="js/common.js"></script>
+    <script src="js/bootstrap.bundle.js"></script>
+    <script src="js/admin-auth.js"></script>
+    <script src="js/course.js"></script>
+
+</body>
+
+</html>
