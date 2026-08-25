@@ -1,0 +1,100 @@
+/* ===================== THUMBNAIL PREVIEW BOX (forms) ===================== */
+
+.thumbnail-preview-box {
+    border: 2px dashed #dee2e6;
+    border-radius: 8px;
+    padding: 12px;
+    text-align: center;
+    background: #f8f9fa;
+    min-height: 90px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.thumbnail-preview-box img {
+    max-height: 150px;
+    border-radius: 6px;
+    object-fit: cover;
+}
+
+.thumbnail-preview-box .placeholder-text {
+    color: #adb5bd;
+    font-size: 0.9rem;
+}
+
+/* ===================== FEATURE LIST TABLE ===================== */
+
+.feature-table {
+    table-layout: fixed;
+    width: 100%;
+}
+
+.feature-table th {
+    font-weight: 600;
+    white-space: normal;
+    word-break: break-word;
+    vertical-align: middle;
+    padding: 10px 8px;
+    background: #f8f9fa;
+}
+
+.feature-table td {
+    white-space: normal;
+    word-break: break-word;
+    padding: 10px 8px;
+    vertical-align: middle;
+}
+
+/* Description column - the widest, wraps normally, no ugly mid-word breaks */
+.feature-table td.col-description {
+    word-break: break-word;
+    overflow-wrap: anywhere;
+    color: #444;
+    font-size: 0.92rem;
+}
+
+/* Thumbnail column */
+.feature-table td.col-thumbnail {
+    text-align: center;
+}
+
+.feature-table td.col-thumbnail img {
+    width: 80px;
+    height: 50px;
+    object-fit: cover;
+    border-radius: 4px;
+}
+
+/* Numeric / status columns stay compact & centered */
+.feature-table td.col-id,
+.feature-table td.col-order,
+.feature-table td.col-status {
+    text-align: center;
+}
+
+/* Actions column - buttons wrap onto a second line instead of
+   squeezing the table sideways or breaking the header */
+.feature-table td.col-actions {
+    text-align: center;
+}
+
+.feature-table .action-btns {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    justify-content: center;
+}
+
+.feature-table .action-btns .btn {
+    flex: 0 0 auto;
+    white-space: nowrap;
+}
+
+/* Small screens: table scrolls horizontally instead of squashing columns */
+@media (max-width: 768px) {
+    .feature-table {
+        table-layout: auto;
+        min-width: 720px;
+    }
+}

@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Manage Home Page Features</title>
+    <link href="css/bootstrap.css" rel="stylesheet">
+    <link href="feature.css" rel="stylesheet">
+</head>
+
+<body>
+
+    <div class="container mt-4">
+
+        <h3 class="mb-4">Manage Home Page Features</h3>
+
+        <!-- Create Feature -->
+        <div class="card mb-4">
+            <div class="card-header">Add New Feature</div>
+            <div class="card-body">
+
+                <div class="mb-3">
+                    <label class="form-label">Title</label>
+                    <input type="text" id="featureTitle" class="form-control" placeholder="Title">
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Description</label>
+                    <textarea id="featureDescription" class="form-control" rows="3" placeholder="Description"></textarea>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Display Order</label>
+                    <input type="number" id="featureDisplayOrder" class="form-control" placeholder="Display Order (e.g. 1)">
+                    <div class="form-text">Lower number shows first on the home page.</div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Thumbnail</label>
+                    <input type="file" id="featureThumbnail" class="form-control" accept="image/*"
+                        onchange="previewThumbnail('featureThumbnail', 'createThumbPreview')">
+                    <div id="createThumbPreview" class="thumbnail-preview-box mt-2">
+                        <span class="placeholder-text">Thumbnail preview will appear here</span>
+                    </div>
+                </div>
+
+                <button class="btn btn-primary" onclick="createFeature()">Create Feature</button>
+
+            </div>
+        </div>
+
+        <!-- Feature Table -->
+        <div class="card">
+
+            <div class="card-header">Feature List</div>
+
+            <!-- ===== ACTIVE / INACTIVE FILTER BUTTONS ===== -->
+            <div class="p-3 pb-0 d-flex gap-2">
+                <button type="button" id="btnActiveFilter" class="btn btn-success" onclick="loadActiveFeatures()">
+                    Active
+                </button>
+                <button type="button" id="btnInactiveFilter" class="btn btn-outline-danger"
+                    onclick="loadInactiveFeatures()">
+                    Inactive
+                </button>
+            </div>
+
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-bordered align-middle feature-table mb-0">
+                        <colgroup>
+                            <col style="width: 6%">
+                            <col style="width: 15%">
+                            <col style="width: 29%">
+                            <col style="width: 8%">
+                            <col style="width: 12%">
+                            <col style="width: 10%">
+                            <col style="width: 20%">
+                        </colgroup>
+                        <thead>
+                            <tr>
+                                <th class="text-center">ID</th>
+                                <th>Title</th>
+                                <th>Description</th>
+                                <th class="text-center">Order</th>
+                                <th class="text-center">Thumbnail</th>
+                                <th class="text-center">Status</th>
+                                <th class="text-center">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="featureTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- Edit Modal -->
+    <div class="modal fade" id="editFeatureModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+
+                <div class="modal-header">
+                    <h5 class="modal-title">Edit Feature</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body">
+
+                    <input type="hidden" id="editFeatureId">
+
+                    <div class="mb-3">
+                        <label class="form-label">Title</label>
+                        <input type="text" id="editFeatureTitle" class="form-control" placeholder="Title">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Description</label>
+                        <textarea id="editFeatureDescription" class="form-control" rows="3"
+                            placeholder="Description"></textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Display Order</label>
+                        <input type="number" id="editFeatureDisplayOrder" class="form-control"
+                            placeholder="Display Order">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Thumbnail</label>
+
+                        <!-- Current thumbnail preview -->
+                        <div id="editThumbPreview" class="thumbnail-preview-box mb-2">
+                            <span class="placeholder-text">No thumbnail</span>
+                        </div>
+
+                        <!-- Hidden field to store current/new image URL -->
+                        <input type="hidden" id="editFeatureImageUrl">
+
+                        <!-- Upload new thumbnail -->
+                        <input type="file" id="editFeatureThumbnailFile" class="form-control" accept="image/*"
+                            onchange="handleEditThumbnailChange()">
+                        <div class="form-text">Select a new image to change the old one, otherwise old image will remain</div>
+                    </div>
+
+                </div>
+
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button class="btn btn-success" onclick="updateFeature()">Update Feature</button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+
+    <!-- View Feature Modal -->
+    <div class="modal fade" id="viewFeatureModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+
+                <div class="modal-header">
+                    <h5 class="modal-title">Feature Details</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body">
+
+                    <div class="text-center mb-3">
+                        <img id="viewThumbnail" src="" class="img-fluid rounded border"
+                            style="max-height:250px; display:none;">
+                        <div id="viewThumbnailPlaceholder" class="thumbnail-preview-box">
+                            <span class="placeholder-text">No thumbnail available</span>
+                        </div>
+                    </div>
+
+                    <table class="table table-bordered">
+                        <tr>
+                            <th>ID</th>
+                            <td id="viewId"></td>
+                        </tr>
+                        <tr>
+                            <th>Title</th>
+                            <td id="viewTitle"></td>
+                        </tr>
+                        <tr>
+                            <th>Description</th>
+                            <td id="viewDescription"></td>
+                        </tr>
+                        <tr>
+                            <th>Display Order</th>
+                            <td id="viewDisplayOrder"></td>
+                        </tr>
+                        <tr>
+                            <th>Status</th>
+                            <td id="viewStatus"></td>
+                        </tr>
+                        <tr>
+                            <th>Created At</th>
+                            <td id="viewCreatedAt"></td>
+                        </tr>
+                        <tr>
+                            <th>Updated At</th>
+                            <td id="viewUpdatedAt"></td>
+                        </tr>
+                    </table>
+
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Scripts -->
+    <script src="js/config.js"></script>
+    <script src="js/loader.js"></script>
+    <script src="js/common.js"></script>
+    <script src="js/bootstrap.bundle.js"></script>
+    <script src="js/admin-auth.js"></script>
+    <script src="js/feature.js"></script>
+
+</body>
+
+</html>

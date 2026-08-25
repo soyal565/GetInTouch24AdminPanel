@@ -774,6 +774,12 @@ function renderQuestions(questions) {
         return;
     }
 
+    // Store the exact list currently rendered, so View/Edit buttons can
+    // look the question up by index instead of embedding raw JSON in HTML.
+    // (Embedding JSON.stringify(q) inside an onclick='...' attribute breaks
+    // the moment question/option/explanation text contains a quote char.)
+    window.renderedQuestions = questions;
+
     questions.forEach((q, index) => {
 
         const isActive = getQuestionActiveStatus(q);
@@ -811,7 +817,7 @@ ${q.imageQuestion
 
 <button
 class="btn btn-info btn-sm"
-onclick='viewQuestion(${JSON.stringify(q)})'>
+onclick="viewQuestion(window.renderedQuestions[${index}])">
 
 View
 
@@ -819,7 +825,7 @@ View
 
 <button
 class="btn btn-warning btn-sm"
-onclick='openEditModal(${JSON.stringify(q)})'>
+onclick="openEditModal(window.renderedQuestions[${index}])">
 
 Edit
 
@@ -1384,7 +1390,7 @@ function openEditModal(q) {
     <div class="option-preview-box">
         <img
             src="${getOptionImageUrl(opt)}"
-            onerror="this.parentElement.innerHTML='<span class=&quot;placeholder-text&quot;>Image didn't get load</span>'">
+            onerror="this.parentElement.innerHTML='<span class=&quot;placeholder-text&quot;>Image did not load</span>'">
     </div>
 
     <input
