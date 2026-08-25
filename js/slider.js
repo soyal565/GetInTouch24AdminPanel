@@ -120,7 +120,7 @@ async function toggleSlider(id, currentStatus, imageUrl) {
     }
 }
 
-// ================= UPLOAD / COMPRESS =================
+// ================= UPLOAD / OPTIMIZE =================
 function openFilePicker() {
     document.getElementById("imageInput").click();
 }
@@ -132,9 +132,18 @@ document.getElementById("imageInput").addEventListener("change", async function 
     const token = localStorage.getItem("adminToken");
 
     try {
-        const compressedFile = await compressImage(file);
+        // 🔥 FIX: previously this ALWAYS force-resized every image to
+        // 800px width (even upscaling small images -> blurry) and saved
+        // it as JPEG at 70% quality. That's why sliders looked low-res
+        // even though the originals were high quality.
+        //
+        // Now we only touch the file if it's genuinely huge, and even
+        // then we never upscale and use a high quality setting so the
+        // result is visually the same as the original.
+        const fileToUpload = await optimizeImageIfNeeded(file);
+
         const formData = new FormData();
-        formData.append("file", compressedFile);
+        formData.append("file", fileToUpload, file.name);
 
         const res = await fetch(CONFIG.BASE_URL + "/api/public/sliders", {
             method: "POST",
@@ -151,35 +160,81 @@ document.getElementById("imageInput").addEventListener("change", async function 
     } catch (err) {
         console.error("Upload Error:", err);
     }
+
+    // allow re-selecting the same file again later
+    this.value = "";
 });
 
-async function compressImage(file) {
-    return new Promise((resolve) => {
+// ================= IMAGE OPTIMIZATION (QUALITY-SAFE) =================
+//
+// Rules:
+// 1. If the file is already reasonably small (<= 3 MB), upload it
+//    AS-IS. No re-encoding at all -> zero quality loss.
+// 2. If the file is larger than that, only downscale it if its width
+//    is bigger than MAX_WIDTH (never upscale), and re-encode at a
+//    high quality (0.95) in its ORIGINAL format (png stays png so
+//    transparency/lossless quality is kept; jpeg/webp stay lossy but
+//    at high quality instead of 0.7).
+//
+const SIZE_THRESHOLD_BYTES = 3 * 1024 * 1024; // 3 MB
+const MAX_WIDTH = 1920; // plenty for any slider/banner display size
+const JPEG_QUALITY = 0.95;
+
+async function optimizeImageIfNeeded(file) {
+
+    // Small enough already -> don't touch it, keep full original quality
+    if (file.size <= SIZE_THRESHOLD_BYTES) {
+        return file;
+    }
+
+    const dataUrl = await readFileAsDataURL(file);
+    const img = await loadImage(dataUrl);
+
+    // Never upscale — only shrink if it's actually wider than MAX_WIDTH
+    const needsResize = img.width > MAX_WIDTH;
+    const targetWidth = needsResize ? MAX_WIDTH : img.width;
+    const targetHeight = needsResize
+        ? Math.round(img.height * (MAX_WIDTH / img.width))
+        : img.height;
+
+    const canvas = document.createElement("canvas");
+    canvas.width = targetWidth;
+    canvas.height = targetHeight;
+
+    const ctx = canvas.getContext("2d");
+    ctx.drawImage(img, 0, 0, targetWidth, targetHeight);
+
+    // Keep PNG lossless if it was PNG (e.g. logos/graphics with
+    // transparency); otherwise export as high-quality JPEG.
+    const outputType = file.type === "image/png" ? "image/png" : "image/jpeg";
+    const quality = outputType === "image/png" ? undefined : JPEG_QUALITY;
+
+    const blob = await new Promise(resolve => canvas.toBlob(resolve, outputType, quality));
+
+    // Safety net: if for some reason the "optimized" version ended up
+    // bigger or failed, just fall back to the original file.
+    if (!blob || blob.size >= file.size) {
+        return file;
+    }
+
+    return blob;
+}
+
+function readFileAsDataURL(file) {
+    return new Promise((resolve, reject) => {
         const reader = new FileReader();
-
-        reader.onload = function (event) {
-            const img = new Image();
-            img.src = event.target.result;
-
-            img.onload = function () {
-                const canvas = document.createElement("canvas");
-                const ctx = canvas.getContext("2d");
-
-                const maxWidth = 800;
-                const scaleSize = maxWidth / img.width;
-
-                canvas.width = maxWidth;
-                canvas.height = img.height * scaleSize;
-
-                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-
-                canvas.toBlob((blob) => {
-                    resolve(blob);
-                }, "image/jpeg", 0.7);
-            };
-        };
-
+        reader.onload = e => resolve(e.target.result);
+        reader.onerror = reject;
         reader.readAsDataURL(file);
+    });
+}
+
+function loadImage(src) {
+    return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.onload = () => resolve(img);
+        img.onerror = reject;
+        img.src = src;
     });
 }
 
