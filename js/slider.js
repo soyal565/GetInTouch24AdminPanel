@@ -120,7 +120,7 @@ async function toggleSlider(id, currentStatus, imageUrl) {
     }
 }
 
-// ================= UPLOAD / OPTIMIZE =================
+// ================= UPLOAD (AUTO-SHRINK UNTIL SERVER ACCEPTS) =================
 function openFilePicker() {
     document.getElementById("imageInput").click();
 }
@@ -129,95 +129,172 @@ document.getElementById("imageInput").addEventListener("change", async function 
     const file = this.files[0];
     if (!file) return;
 
+    console.log("Selected file:", file.name, file.type, (file.size / 1024 / 1024).toFixed(2) + " MB");
+
     const token = localStorage.getItem("adminToken");
 
+    if (!token) {
+        alert("❌ Please login first");
+        this.value = "";
+        return;
+    }
+
     try {
-        // 🔥 FIX: previously this ALWAYS force-resized every image to
-        // 800px width (even upscaling small images -> blurry) and saved
-        // it as JPEG at 70% quality. That's why sliders looked low-res
-        // even though the originals were high quality.
-        //
-        // Now we only touch the file if it's genuinely huge, and even
-        // then we never upscale and use a high quality setting so the
-        // result is visually the same as the original.
-        const fileToUpload = await optimizeImageIfNeeded(file);
+        const result = await uploadWithAutoShrink(file, token);
 
-        const formData = new FormData();
-        formData.append("file", fileToUpload, file.name);
-
-        const res = await fetch(CONFIG.BASE_URL + "/api/public/sliders", {
-            method: "POST",
-            headers: { "Authorization": "Bearer " + token },
-            body: formData
-        });
-
-        const data = await res.json();
-        console.log("UPLOAD RESPONSE:", data);
-
-        if (res.ok) loadSliders(true);
-        else alert("❌ Upload failed: " + (data.message || ""));
+        if (result.ok) {
+            loadSliders(true);
+        } else if (result.sizeLimitExhausted) {
+            alert(
+                "❌ This image is too large for the server to accept, even after " +
+                "compressing it multiple times. Please try a smaller image " +
+                "(roughly under 1 MB), or ask whoever manages the backend to " +
+                "raise the upload size limit."
+            );
+        } else if (result.status === 415) {
+            alert("❌ Upload failed: this file type isn't accepted by the server.");
+        } else if (result.status === 401 || result.status === 403) {
+            alert("❌ Not authorized. Please login again.");
+        } else {
+            alert("❌ Upload failed: " + (result.data?.message || result.raw || `Server error (${result.status})`));
+        }
 
     } catch (err) {
+        // Network failure, CORS block, etc.
         console.error("Upload Error:", err);
+        alert("❌ Upload failed: could not reach the server. Check your connection and try again.");
     }
 
     // allow re-selecting the same file again later
     this.value = "";
 });
 
-// ================= IMAGE OPTIMIZATION (QUALITY-SAFE) =================
-//
-// Rules:
-// 1. If the file is already reasonably small (<= 3 MB), upload it
-//    AS-IS. No re-encoding at all -> zero quality loss.
-// 2. If the file is larger than that, only downscale it if its width
-//    is bigger than MAX_WIDTH (never upscale), and re-encode at a
-//    high quality (0.95) in its ORIGINAL format (png stays png so
-//    transparency/lossless quality is kept; jpeg/webp stay lossy but
-//    at high quality instead of 0.7).
-//
-const SIZE_THRESHOLD_BYTES = 3 * 1024 * 1024; // 3 MB
-const MAX_WIDTH = 1920; // plenty for any slider/banner display size
-const JPEG_QUALITY = 0.95;
+// We don't know the backend's exact max-upload-size (no access to that
+// config), so instead of guessing a number, we just try the ORIGINAL
+// file first (best possible quality) and only shrink it — a little bit
+// at a time — if the server specifically rejects it for being too big.
+// Each attempt is generated fresh from the original file (never from an
+// already-shrunk copy), so quality never compounds/degrades more than
+// necessary for that one attempt.
+async function uploadWithAutoShrink(file, token) {
 
-async function optimizeImageIfNeeded(file) {
+    // Attempt 0: the original file, completely untouched.
+    let result = await tryUploadBlob(file, file.name, token);
 
-    // Small enough already -> don't touch it, keep full original quality
-    if (file.size <= SIZE_THRESHOLD_BYTES) {
-        return file;
+    if (result.ok || !isSizeLimitError(result.status, result.raw)) {
+        return result; // either it worked, or it failed for an unrelated reason
     }
 
-    const dataUrl = await readFileAsDataURL(file);
-    const img = await loadImage(dataUrl);
+    console.log(`Original file (${(file.size / 1024 / 1024).toFixed(2)}MB) was rejected as too large. Shrinking...`);
 
-    // Never upscale — only shrink if it's actually wider than MAX_WIDTH
-    const needsResize = img.width > MAX_WIDTH;
-    const targetWidth = needsResize ? MAX_WIDTH : img.width;
-    const targetHeight = needsResize
-        ? Math.round(img.height * (MAX_WIDTH / img.width))
-        : img.height;
+    // Progressively smaller / more compressed attempts. The last two
+    // force a conversion to JPEG (dropping transparency) because PNG's
+    // lossless compression often can't shrink enough on its own.
+    const attempts = [
+        { maxWidth: 1600, quality: 0.9,  forceJpeg: false },
+        { maxWidth: 1200, quality: 0.85, forceJpeg: false },
+        { maxWidth: 1000, quality: 0.8,  forceJpeg: true  },
+        { maxWidth: 800,  quality: 0.7,  forceJpeg: true  },
+    ];
 
-    const canvas = document.createElement("canvas");
-    canvas.width = targetWidth;
-    canvas.height = targetHeight;
+    for (const cfg of attempts) {
 
-    const ctx = canvas.getContext("2d");
-    ctx.drawImage(img, 0, 0, targetWidth, targetHeight);
+        const blob = await shrinkImage(file, cfg.maxWidth, cfg.quality, cfg.forceJpeg);
+        if (!blob) continue;
 
-    // Keep PNG lossless if it was PNG (e.g. logos/graphics with
-    // transparency); otherwise export as high-quality JPEG.
-    const outputType = file.type === "image/png" ? "image/png" : "image/jpeg";
-    const quality = outputType === "image/png" ? undefined : JPEG_QUALITY;
+        let name = file.name;
+        if (cfg.forceJpeg) {
+            name = name.replace(/\.[^/.]+$/, "") + ".jpg";
+        }
 
-    const blob = await new Promise(resolve => canvas.toBlob(resolve, outputType, quality));
+        console.log(`Retrying at max ${cfg.maxWidth}px, quality ${cfg.quality} -> ${(blob.size / 1024 / 1024).toFixed(2)}MB`);
 
-    // Safety net: if for some reason the "optimized" version ended up
-    // bigger or failed, just fall back to the original file.
-    if (!blob || blob.size >= file.size) {
-        return file;
+        result = await tryUploadBlob(blob, name, token);
+
+        if (result.ok) return result;
+        if (!isSizeLimitError(result.status, result.raw)) return result; // different failure, stop retrying
     }
 
-    return blob;
+    return { ok: false, sizeLimitExhausted: true };
+}
+
+// Performs one upload attempt and returns a normalized result object.
+async function tryUploadBlob(blob, filename, token) {
+    const formData = new FormData();
+    formData.append("file", blob, filename);
+
+    const res = await fetch(CONFIG.BASE_URL + "/api/public/sliders", {
+        method: "POST",
+        headers: { "Authorization": "Bearer " + token },
+        body: formData
+    });
+
+    // Read as raw text first — if the backend returns an error page
+    // (e.g. a 413 HTML page instead of JSON), res.json() would throw
+    // and swallow the real reason. This way we always see what came back.
+    const raw = await res.text();
+    console.log("UPLOAD STATUS:", res.status);
+    console.log("UPLOAD RAW RESPONSE:", raw);
+
+    let data = {};
+    try { data = raw ? JSON.parse(raw) : {}; }
+    catch (e) { /* response wasn't JSON, `raw` still has the message */ }
+
+    return { ok: res.ok, status: res.status, raw, data };
+}
+
+// Detects a "too large" rejection regardless of how the backend reports
+// it — some return 413, others return 500/400 with a message like
+// "Maximum upload size exceeded" (Spring's default wording).
+function isSizeLimitError(status, raw) {
+    if (status === 413) return true;
+    if (!raw) return false;
+    const lower = raw.toLowerCase();
+    return (
+        lower.includes("maximum upload size") ||
+        lower.includes("maxuploadsizeexceeded") ||
+        lower.includes("file too large") ||
+        lower.includes("file size exceeds")
+    );
+}
+
+// ================= IMAGE SHRINKING =================
+// Redraws the image at a smaller width (never upscales) and re-encodes
+// it. If forceJpeg is true, transparency is flattened onto a white
+// background first (JPEG has no alpha channel).
+async function shrinkImage(file, maxWidth, quality, forceJpeg) {
+    try {
+        const dataUrl = await readFileAsDataURL(file);
+        const img = await loadImage(dataUrl);
+
+        const targetWidth = Math.min(maxWidth, img.width); // never upscale
+        const scale = targetWidth / img.width;
+        const targetHeight = Math.round(img.height * scale);
+
+        const canvas = document.createElement("canvas");
+        canvas.width = targetWidth;
+        canvas.height = targetHeight;
+        const ctx = canvas.getContext("2d");
+
+        if (forceJpeg) {
+            // Flatten transparency onto white so it doesn't turn black in JPEG
+            ctx.fillStyle = "#ffffff";
+            ctx.fillRect(0, 0, targetWidth, targetHeight);
+        }
+
+        ctx.drawImage(img, 0, 0, targetWidth, targetHeight);
+
+        const outputType = forceJpeg
+            ? "image/jpeg"
+            : (file.type === "image/png" ? "image/png" : "image/jpeg");
+        const q = outputType === "image/png" ? undefined : quality;
+
+        return await new Promise(resolve => canvas.toBlob(resolve, outputType, q));
+
+    } catch (err) {
+        console.error("Shrink attempt failed:", err);
+        return null;
+    }
 }
 
 function readFileAsDataURL(file) {
