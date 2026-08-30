@@ -2,10 +2,17 @@ document.getElementById("adminLoginForm").addEventListener("submit", async funct
 
     e.preventDefault();
 
+    const loginBtn = e.target.querySelector('button[type="submit"]');
+
     const email = document.getElementById("email").value.trim();
     const password = document.getElementById("password").value.trim();
 
-    try {
+    if (!email || !password) {
+        alert("Please enter both email and password");
+        return;
+    }
+
+    await withLoader(async () => {
 
         const response = await fetch(CONFIG.BASE_URL + "/auth/login/admin", {
             method: "POST",
@@ -30,10 +37,11 @@ document.getElementById("adminLoginForm").addEventListener("submit", async funct
             alert(data.message || "Invalid email or password");
         }
 
-    } catch (error) {
+    }, loginBtn).catch((error) => {
         console.error("Login Error:", error);
         alert("Server error. Please try again later.");
-    }
+    });
+
 });
 
 document.getElementById("togglePassword").addEventListener("click", function () {

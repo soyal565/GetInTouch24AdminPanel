@@ -2,7 +2,7 @@
 
 // Here is the trusted admin emails 
 const SUPER_ADMIN_EMAILS = [
-    "admin@getintouch.com"
+    "srajendra790@gmail.com", "shahsoyal37@gmail.com"
     // we can add more admin emails here
 ];
 
