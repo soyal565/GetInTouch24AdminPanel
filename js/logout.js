@@ -31,6 +31,6 @@ async function logout() {
     localStorage.removeItem("refreshToken");
 
     // Redirect to login page
-    window.location.href = "index.html";
+    window.location.href = "AdminLogin.html";
 
 }
