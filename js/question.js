@@ -1704,7 +1704,7 @@ async function updateQuestion() {
             )
         };
 
-        console.log("UPDATE PAYLOAD =>", payload);
+        
 
         const res = await fetch(
             CONFIG.BASE_URL +
@@ -1722,8 +1722,7 @@ async function updateQuestion() {
 
         const responseText = await res.text();
 
-        console.log("Status:", res.status);
-        console.log("Response:", responseText);
+        
 
         if (!res.ok) {
             alert(responseText);

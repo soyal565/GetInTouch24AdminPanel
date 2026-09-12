@@ -60,3 +60,63 @@ document.getElementById("togglePassword").addEventListener("click", function () 
     }
 
 });
+
+// ================= FORGOT PASSWORD (ADMIN) =================
+
+function openAdminForgotPassword() {
+
+    const email =
+        document.getElementById("email").value.trim();
+
+    if (!email) {
+        alert("Please enter your admin email first");
+        return;
+    }
+
+    sendAdminOtp(email);
+
+}
+
+async function sendAdminOtp(email) {
+
+    try {
+
+        await withLoader(async () => {
+
+            const res = await fetch(
+                CONFIG.BASE_URL + "/auth/forgot-password",
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ email })
+                }
+            );
+
+            const data = await res.json();
+
+            if (res.ok) {
+
+                alert("✅ OTP sent to your registered admin email");
+
+                // Naya key naam rakha hai (adminResetEmail),
+                // taaki user panel ke 'resetEmail' se conflict na ho
+                localStorage.setItem("adminResetEmail", email);
+
+                window.location.href = "admin-reset-password.html";
+
+            } else {
+
+                alert(data.message || "Failed to send OTP");
+
+            }
+
+        });
+
+    } catch (err) {
+        console.error("Send Admin OTP error:", err);
+        alert("Server error. Please try again later.");
+    }
+
+}

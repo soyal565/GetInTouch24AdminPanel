@@ -602,6 +602,8 @@ function refreshQuizzes() {
 
 // ================= RENDER QUIZZES =================
 
+// ================= RENDER QUIZZES =================
+
 async function renderQuizzes(data) {
 
     const tbody = document.getElementById("quizTableBody");
@@ -614,34 +616,43 @@ async function renderQuizzes(data) {
 
     const token = localStorage.getItem("adminToken");
 
-    for (const [index, q] of data.entries()) {
+    // Step 1: Sabhi quizzes ke liye (parallel mein) totalQuestions nikaalo
+    const enrichedData = await Promise.all(
+        data.map(async (q) => {
 
-        // Chapter ke total questions ki jagah is QUIZ ke actual
-        // assigned questions ka count lo
-        let totalQuestions = q.totalQuestions ?? q.questions?.length ?? 0;
+            let totalQuestions = q.totalQuestions ?? q.questions?.length ?? 0;
 
-        if (!totalQuestions && q.id) {
+            if (!totalQuestions && q.id) {
 
-            try {
+                try {
 
-                const quizRes = await fetch(
-                    CONFIG.BASE_URL + "/api/quizzes/" + q.id,
-                    { headers: { "Authorization": "Bearer " + token } }
-                );
+                    const quizRes = await fetch(
+                        CONFIG.BASE_URL + "/api/quizzes/" + q.id,
+                        { headers: { "Authorization": "Bearer " + token } }
+                    );
 
-                const quizData = await quizRes.json();
-                const quizDetail = quizData.data ? quizData.data : quizData;
+                    const quizData = await quizRes.json();
+                    const quizDetail = quizData.data ? quizData.data : quizData;
 
-                totalQuestions = quizDetail.questions?.length ?? 0;
+                    totalQuestions = quizDetail.questions?.length ?? 0;
 
-            } catch (e) {
-                console.error("Quiz detail fetch error:", e);
+                } catch (e) {
+                    console.error("Quiz detail fetch error:", e);
+                }
+
             }
 
-        }
+            return { ...q, _totalQuestions: totalQuestions };
+
+        })
+    );
+
+    // Step 2: Ab poori table ek hi baar mein bana do (koi row-by-row append nahi)
+    let rowsHTML = "";
+
+    enrichedData.forEach((q, index) => {
 
         const isActive = q.active === true;
-
 
         const statusBadge = isActive
             ? `<span class="badge bg-success">Active</span>`
@@ -651,7 +662,9 @@ async function renderQuizzes(data) {
             ? `<button class="btn btn-success btn-sm me-1" onclick="activateQuiz(${q.id})">Activate</button>`
             : `<button class="btn btn-secondary btn-sm me-1" onclick="deactivateQuiz(${q.id})">Deactivate</button>`;
 
-        tbody.innerHTML += `
+            const manageQuestionsBtn =
+            `<button class="btn btn-dark btn-sm me-1" onclick="openManageQuestions(${q.id})">Manage Questions</button>`;
+        rowsHTML += `
             <tr>
                 <td>${index + 1}</td>
                 <td>${q.id}</td>
@@ -659,7 +672,7 @@ async function renderQuizzes(data) {
                 <td>${q.chapter?.title || "-"}</td>
                 <td><span class="badge bg-info">${q.type}</span></td>
                 <td>${statusBadge}</td>
-                <td>${totalQuestions}</td>
+                <td>${q._totalQuestions}</td>
                 <td>${q.totalMarks}</td>
                 <td>
                     <div class="d-flex flex-wrap gap-1">
@@ -667,11 +680,15 @@ async function renderQuizzes(data) {
                         <button class="btn btn-warning btn-sm" onclick="openEditQuiz(${q.id})">Edit</button>
                         <button class="btn btn-danger btn-sm" onclick="deleteQuiz(${q.id})">Delete</button>
                         ${activateBtn}
+                        ${manageQuestionsBtn}
                     </div>
                 </td>
             </tr>
         `;
-    }
+
+    });
+
+    tbody.innerHTML = rowsHTML;
 
 }
 
@@ -938,7 +955,23 @@ async function openEditQuiz(id) {
 
             const token = localStorage.getItem("adminToken");
 
-            // Paper dhundo, taaki uska courseId mil jaaye
+            // Step 1: Saare active chapters lao, taaki inn chapter ka asli paperId mile
+            const chapterRes = await fetch(
+                CONFIG.BASE_URL + "/api/chapters/active",
+                { headers: { "Authorization": "Bearer " + token } }
+            );
+
+            const allChapters = await chapterRes.json();
+
+            const fullChapter =
+                allChapters.find(c => c.id === q.chapter.id);
+
+            if (!fullChapter || !fullChapter.paperId) {
+                console.warn("Paper id didn't get from the chapter list", fullChapter);
+                return;
+            }
+
+            // Step 2: Ab paperId se paper dhundo, taaki uska courseId mile
             const paperRes = await fetch(
                 CONFIG.BASE_URL + "/api/papers/active",
                 { headers: { "Authorization": "Bearer " + token } }
@@ -947,7 +980,7 @@ async function openEditQuiz(id) {
             const papers = await paperRes.json();
 
             const matchedPaper =
-                papers.find(p => p.id === q.chapter.paperId);
+                papers.find(p => p.id === fullChapter.paperId);
 
             if (matchedPaper) {
 
@@ -971,6 +1004,10 @@ async function openEditQuiz(id) {
 
                 // Questions load karo, purani selected wali checked ho jaayengi
                 await loadEditQuestionsByChapter(q);
+
+            } else {
+
+                console.warn("Paper didn't match with paper id:", fullChapter.paperId);
 
             }
 
@@ -1353,5 +1390,115 @@ function toggleSelectAllEditQuestions() {
     ).forEach(cb => {
         cb.checked = selectAll;
     });
+
+}
+
+// ================= MANAGE / REMOVE INDIVIDUAL QUESTIONS FROM A QUIZ =================
+
+// Modal kholo aur is quiz ke assigned questions render karo
+async function openManageQuestions(quizId) {
+
+    document.getElementById("manageQuizId").value = quizId;
+
+    await renderManageQuestionsList(quizId);
+
+    new bootstrap.Modal(
+        document.getElementById("manageQuizQuestionsModal")
+    ).show();
+
+}
+
+async function renderManageQuestionsList(quizId) {
+
+    const listContainer =
+        document.getElementById("manageQuestionsList");
+
+    listContainer.innerHTML =
+        `<li class="list-group-item text-muted">Loading...</li>`;
+
+    try {
+
+        const token = localStorage.getItem("adminToken");
+
+        const res = await fetch(
+            CONFIG.BASE_URL + "/api/quizzes/" + quizId,
+            { headers: { "Authorization": "Bearer " + token } }
+        );
+
+        const response = await res.json();
+        const quiz = response.data ? response.data : response;
+
+        const questions = quiz.questions || [];
+
+        if (questions.length === 0) {
+            listContainer.innerHTML =
+                `<li class="list-group-item text-muted">No questions found in this quiz</li>`;
+            return;
+        }
+
+        listContainer.innerHTML = "";
+
+        questions.forEach((ques, index) => {
+
+            listContainer.innerHTML += `
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <span><b>Q${index + 1}:</b> ${ques.question}</span>
+                    <button
+                        class="btn btn-danger btn-sm"
+                        onclick="removeQuestionFromQuiz(${quizId}, ${ques.id})">
+                        Remove
+                    </button>
+                </li>
+            `;
+
+        });
+
+    } catch (err) {
+        console.error("Manage Questions load error:", err);
+        listContainer.innerHTML =
+            `<li class="list-group-item text-danger">Failed to load questions</li>`;
+    }
+
+}
+
+
+async function removeQuestionFromQuiz(quizId, questionId) {
+
+    if (!confirm("Remove this question from the quiz? This cannot be undone."))
+        return;
+
+    const token = localStorage.getItem("adminToken");
+
+    try {
+
+        const res = await fetch(
+            CONFIG.BASE_URL + "/api/quizzes/" + quizId + "/question/" + questionId,
+            {
+                method: "DELETE",
+                headers: { "Authorization": "Bearer " + token }
+            }
+        );
+
+        if (res.ok) {
+
+            alert("Question removed from quiz successfully!");
+
+            
+            await renderManageQuestionsList(quizId);
+
+        
+            refreshQuizzes();
+
+        } else {
+
+            const text = await res.text().catch(() => "");
+            alert("Failed to remove question — " + text);
+
+        }
+
+    } catch (err) {
+        console.error("Remove question error:", err);
+        alert("Failed to connect with server");
+    }
 
 }
