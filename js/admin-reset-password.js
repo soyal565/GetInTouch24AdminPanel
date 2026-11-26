@@ -12,7 +12,7 @@ document.getElementById("adminResetForm").addEventListener("submit", async funct
 
     if (!email) {
         alert("Session expired. Please try 'Forgot Password' again.");
-        window.location.href = "AdminLogin.html";
+        window.location.href = "index.html";
         return;
     }
 
@@ -58,7 +58,7 @@ document.getElementById("adminResetForm").addEventListener("submit", async funct
 
                 localStorage.removeItem("adminResetEmail");
 
-                window.location.href = "AdminLogin.html";
+                window.location.href = "index.html";
 
             } else {
 
